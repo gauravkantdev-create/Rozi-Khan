@@ -23,14 +23,25 @@ const normalizeEmail = (email = "") => email.toLowerCase().trim();
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+const isValidEmail = (email = "") => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
 export const sendRegisterOtp = async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
+
+    console.log("[auth] sendRegisterOtp request:", { email });
 
     if (!email) {
       return res.status(400).json({
         success: false,
         message: "Email is required",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
       });
     }
 
@@ -52,16 +63,25 @@ export const sendRegisterOtp = async (req, res) => {
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    await sendOtpEmail(email, otp);
+    const emailResult = await sendOtpEmail(email, otp);
+    console.log("[auth] OTP email sent:", {
+      email,
+      provider: "resend",
+      id: emailResult?.data?.id,
+      error: emailResult?.error,
+    });
 
     return res.status(200).json({
       success: true,
       message: "OTP sent to your email. Please verify before registration.",
+      provider: "resend",
     });
   } catch (error) {
+    console.error("[auth] sendRegisterOtp error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to send OTP. Please try again.",
+      error: process.env.NODE_ENV === "production" ? undefined : error.message,
     });
   }
 };
@@ -81,6 +101,8 @@ export const registerUser = async (req, res) => {
     const { name, email, password, otp } = req.body;
     const normalizedEmail = normalizeEmail(email);
 
+    console.log("[auth] registerUser request:", { email: normalizedEmail, name });
+
     // ==========================================
     // Validation
     // ==========================================
@@ -89,6 +111,13 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Please provide name, email, OTP, and password",
+      });
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
       });
     }
 
@@ -173,9 +202,11 @@ export const registerUser = async (req, res) => {
     // Error Response
     // ==========================================
 
+    console.error("[auth] registerUser error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Registration failed. Please try again.",
+      error: process.env.NODE_ENV === "production" ? undefined : error.message,
     });
   }
 };
@@ -194,6 +225,8 @@ export const loginUser = async (req, res) => {
 
     const { email, password } = req.body;
     const normalizedEmail = normalizeEmail(email);
+
+    console.log("[auth] loginUser request:", { email: normalizedEmail });
 
     // ==========================================
     // Validation
@@ -284,9 +317,11 @@ export const loginUser = async (req, res) => {
     // Error Response
     // ==========================================
 
+    console.error("[auth] loginUser error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Login failed. Please try again.",
+      error: process.env.NODE_ENV === "production" ? undefined : error.message,
     });
   }
 };

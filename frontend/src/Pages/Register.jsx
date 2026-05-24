@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import API from "../Services/api";
+import { sendRegisterOtp } from "../Services/authService";
 import useThemeMode from "../hooks/useThemeMode";
 
 const passwordRules = [
@@ -39,7 +39,7 @@ function Register() {
     setMessage({ type: "", text: "" });
 
     try {
-      await API.post("/auth/send-otp", { email });
+      await sendRegisterOtp(email);
       setOtpSent(true);
       setMessage({
         type: "success",

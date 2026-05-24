@@ -33,6 +33,43 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 
 dotenv.config();
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+
+  const allowlist = new Set([
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://rozi-khan.vercel.app",
+  ]);
+
+  if (allowlist.has(origin)) return true;
+
+  // Allow ALL Vercel preview deployments
+  // e.g. https://rozi-khan-j103hdoda-gauravkantdev-9489s-projects.vercel.app
+  try {
+    const { hostname } = new URL(origin);
+    return hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+};
+
+const buildCorsOptions = () => ({
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      // Reflect exact origin (required when credentials: true)
+      return callback(null, origin || true);
+    }
+
+    console.warn("[cors] blocked origin:", origin);
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
+});
+
 // ==========================================
 // Start Server Function
 // ==========================================
@@ -68,31 +105,9 @@ const startServer = async () => {
     // CORS Configuration
     // ==========================================
 
-    const allowedOrigins = [
-      "http://localhost:5173",
-      "https://rozi-khan.vercel.app",
-      "https://rozi-khan-kiewri9xw-gauravkantdev-9489s-projects.vercel.app",
-    ];
-
-    app.use(
-      cors({
-        origin: function (origin, callback) {
-
-          // Allow requests with no origin
-          if (!origin) {
-            return callback(null, true);
-          }
-
-          if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            callback(new Error("Not allowed by CORS"));
-          }
-
-        },
-        credentials: true,
-      })
-    );
+    const corsOptions = buildCorsOptions();
+    app.use(cors(corsOptions));
+    app.options(/.*/, cors(corsOptions));
 
     // ==========================================
     // Body Parser Middleware
@@ -137,6 +152,18 @@ const startServer = async () => {
       res.status(200).json({
         success: true,
         message: "RoziKhan API is running successfully 🚀",
+      });
+    });
+
+    // ==========================================
+    // Global Error Handler (JSON)
+    // ==========================================
+
+    app.use((err, req, res, next) => {
+      console.error("[server] error:", err);
+      res.status(500).json({
+        success: false,
+        message: err?.message || "Internal Server Error",
       });
     });
 
