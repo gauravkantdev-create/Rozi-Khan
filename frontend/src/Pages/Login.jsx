@@ -35,13 +35,13 @@ function Login() {
       const apiMessage = error.response?.data?.message;
 
       if (!error.response) {
-        setMessage("Server tak connection nahi bana. Internet ya API URL check karo.");
+        setMessage("Unable to connect to the server. Check your internet connection or API URL.");
       } else if (apiMessage === "User not found") {
         setMessage(
-          "Is email ka account live server par nahi hai. Pehle isi website par Register karo, phir Login karo."
+          "No account exists for this email on the live server. Please register first, then log in."
         );
       } else if (apiMessage === "Please verify your email before login") {
-        setMessage("Pehle email OTP verify karke register complete karo.");
+        setMessage("Please verify your email OTP to complete registration before logging in.");
       } else {
         setMessage(apiMessage || "Invalid credentials. Please try again.");
       }

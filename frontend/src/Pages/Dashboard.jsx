@@ -24,8 +24,9 @@ function Dashboard() {
     category: "",
     stock: "",
     supplier: "",
-    image: "",
+    images: [],
   });
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [formMessage, setFormMessage] = useState({ type: "", text: "" });
   const [imageUploadMode, setImageUploadMode] = useState("upload"); // "upload" or "url"
@@ -138,32 +139,44 @@ function Dashboard() {
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      return;
-    }
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setUploading(true);
     setFormMessage({ type: "", text: "" });
 
-    const uploadData = new FormData();
-    uploadData.append("image", file);
-
     try {
-      const { data } = await API.post("/upload", uploadData);
+      const uploadPromises = files.map(async (file) => {
+        const uploadData = new FormData();
+        uploadData.append("image", file);
+        const { data } = await API.post("/upload", uploadData);
+        if (data && data.success) return data.url;
+        throw new Error(data?.message || "Upload failed");
+      });
 
-      if (data.success) {
-        setFormData((prev) => ({ ...prev, image: data.url }));
-        setFormMessage({ type: "success", text: "Local image uploaded successfully." });
-      }
+      const urls = await Promise.all(uploadPromises);
+      setFormData((prev) => ({ ...prev, images: [...(prev.images || []), ...urls] }));
+      setFormMessage({ type: "success", text: "Local image(s) uploaded successfully." });
     } catch (error) {
       setFormMessage({
         type: "error",
-        text: error.response?.data?.message || "Failed to upload image. Make sure it is under 5MB.",
+        text: error.response?.data?.message || error.message || "Failed to upload image(s).",
       });
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleAddImageUrl = () => {
+    const url = (imageUrlInput || "").trim();
+    if (!url) return;
+    setFormData((prev) => ({ ...prev, images: [...(prev.images || []), url] }));
+    setImageUrlInput("");
+    setFormMessage({ type: "success", text: "Link added to images." });
+  };
+
+  const handleRemoveImageAt = (index) => {
+    setFormData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   };
 
   const handleAddProduct = async (e) => {
@@ -176,7 +189,7 @@ function Dashboard() {
         ...formData,
         price: Number(formData.price),
         stock: Number(formData.stock),
-        images: formData.image ? [formData.image] : [],
+        images: formData.images || [],
       };
 
       const { data } = await API.post("/products", payload, {
@@ -192,7 +205,7 @@ function Dashboard() {
           category: "",
           stock: "",
           supplier: "",
-          image: "",
+          images: [],
         });
         fetchUserProducts();
       }
@@ -547,21 +560,19 @@ function Dashboard() {
 
                   {imageUploadMode === "upload" ? (
                     <div className="space-y-4">
-                      {formData.image ? (
-                        <div className={`flex items-center gap-4 rounded-xl border border-dashed p-4 ${isDark ? "border-white/15 bg-white/5" : "border-slate-300 bg-slate-50"}`}>
-                          <div className={`flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border ${isDark ? "border-white/10 bg-[#f7f7f7]" : "border-slate-200 bg-white"}`}>
-                            <img src={formData.image} alt="Preview" className="h-full w-full object-contain" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-bold text-emerald-500">✓ Uploaded successfully</p>
-                            <p className={`mt-1 truncate text-xs ${mutedText}`}>{formData.image}</p>
-                            <button
-                              type="button"
-                              onClick={() => setFormData((prev) => ({ ...prev, image: "" }))}
-                              className="mt-2 text-xs font-bold text-red-500 hover:text-red-400"
-                            >
-                              Remove Image
-                            </button>
+                      {formData.images && formData.images.length > 0 ? (
+                        <div className={`grid grid-cols-3 gap-3 rounded-xl border border-dashed p-3 ${isDark ? "border-white/15 bg-white/5" : "border-slate-300 bg-slate-50"}`}>
+                          {formData.images.map((img, idx) => (
+                            <div key={`${img}-${idx}`} className="relative rounded-lg border bg-white p-2">
+                              <img src={img} alt={`preview-${idx}`} className="h-24 w-24 object-contain" onError={(e)=>{e.target.src=fallbackImage}} />
+                              <button type="button" onClick={() => handleRemoveImageAt(idx)} className="absolute right-1 top-1 rounded bg-red-500/80 px-2 py-1 text-xs font-bold text-white">Remove</button>
+                            </div>
+                          ))}
+                          <div className="flex items-center justify-center">
+                            <label className={`flex cursor-pointer flex-col items-center justify-center rounded-xl p-2 text-sm font-bold transition ${isDark ? "text-gray-400" : "text-slate-500"}`}>
+                              <span className="text-xs">+ Add more</span>
+                              <input type="file" accept="*/*" multiple disabled={uploading} onChange={handleImageUpload} className="hidden" />
+                            </label>
                           </div>
                         </div>
                       ) : (
@@ -577,50 +588,35 @@ function Dashboard() {
                                 <svg className={`h-8 w-8 transition ${isDark ? "text-gray-400" : "text-slate-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                <span className="text-sm font-black">Click to select an image file</span>
-                                <span className={`text-xs ${mutedText}`}>Supports JPG, PNG, WEBP, GIF (Max 5MB)</span>
+                                <span className="text-sm font-black">Click to select image files</span>
+                                <span className={`text-xs ${mutedText}`}>Supports any browser-recognized image format (Max 5MB)</span>
                               </>
                             )}
                           </div>
-                          <input type="file" accept="image/*" disabled={uploading} onChange={handleImageUpload} className="hidden" />
+                          <input type="file" accept="*/*" multiple disabled={uploading} onChange={handleImageUpload} className="hidden" />
                         </label>
                       )}
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
                         <input
                           type="url"
-                          name="image"
                           placeholder="https://example.com/image.jpg"
-                          value={formData.image}
-                          onChange={handleFormChange}
-                          className={`rounded-xl border p-3 outline-none transition-colors ${inputClass}`}
+                          value={imageUrlInput}
+                          onChange={(e) => setImageUrlInput(e.target.value)}
+                          className={`flex-1 rounded-xl border p-3 outline-none transition-colors ${inputClass}`}
                         />
+                        <button type="button" onClick={handleAddImageUrl} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white">Add Link</button>
                       </div>
-                      {formData.image && (
-                        <div className={`flex items-center gap-4 rounded-xl border border-dashed p-4 ${isDark ? "border-white/15 bg-white/5" : "border-slate-300 bg-slate-50"}`}>
-                          <div className={`flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border ${isDark ? "border-white/10 bg-[#f7f7f7]" : "border-slate-200 bg-white"}`}>
-                            <img
-                              src={formData.image}
-                              alt="Preview"
-                              className="h-full w-full object-contain"
-                              onError={(e) => {
-                                e.target.src = fallbackImage;
-                              }}
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-bold text-blue-500">🔗 Link Connected</p>
-                            <p className={`mt-1 truncate text-xs ${mutedText}`}>{formData.image}</p>
-                            <button
-                              type="button"
-                              onClick={() => setFormData((prev) => ({ ...prev, image: "" }))}
-                              className="mt-2 text-xs font-bold text-red-500 hover:text-red-400"
-                            >
-                              Clear Link
-                            </button>
-                          </div>
+                      {formData.images && formData.images.length > 0 && (
+                        <div className={`grid grid-cols-3 gap-3 rounded-xl border border-dashed p-3 ${isDark ? "border-white/15 bg-white/5" : "border-slate-300 bg-slate-50"}`}>
+                          {formData.images.map((img, idx) => (
+                            <div key={`${img}-${idx}`} className="relative rounded-lg border bg-white p-2">
+                              <img src={img} alt={`preview-${idx}`} className="h-24 w-24 object-contain" onError={(e)=>{e.target.src=fallbackImage}} />
+                              <button type="button" onClick={() => handleRemoveImageAt(idx)} className="absolute right-1 top-1 rounded bg-red-500/80 px-2 py-1 text-xs font-bold text-white">Remove</button>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -665,7 +661,7 @@ function Dashboard() {
                     >
                       <div className={`relative aspect-[4/3] overflow-hidden ${isDark ? "bg-[#f7f7f7]" : "bg-slate-50"}`}>
                         <img
-                          src={formData.image || fallbackImage}
+                          src={(formData.images && formData.images[0]) || fallbackImage}
                           alt={formData.name || "Product Name"}
                           className="h-full w-full object-contain p-4 transition duration-700 group-hover:scale-105"
                           onError={(e) => {

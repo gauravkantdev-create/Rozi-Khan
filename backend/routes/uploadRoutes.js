@@ -27,14 +27,12 @@ const storage = multer.diskStorage({
 
 // File filter (ensure it's an image)
 function fileFilter(req, file, cb) {
-  const filetypes = /jpe?g|png|webp|gif/i;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+  const isImage = file.mimetype && file.mimetype.startsWith("image/");
 
-  if (extname && mimetype) {
+  if (isImage) {
     cb(null, true);
   } else {
-    cb(new Error("Images only (jpeg, jpg, png, webp, gif)!"), false);
+    cb(new Error("Please upload a valid image file."), false);
   }
 }
 
@@ -52,6 +50,10 @@ router.post(
   upload.single("image"),
   (req, res) => {
     try {
+      // Ensure upload responses allow cross-origin usage in browsers
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+
       if (!req.file) {
         return res.status(400).json({
           success: false,
@@ -68,6 +70,8 @@ router.post(
         url: imageUrl,
       });
     } catch (error) {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       res.status(500).json({
         success: false,
         message: error.message,

@@ -50,18 +50,22 @@ const isAllowedOrigin = (origin) => {
     "http://localhost:5173",
     "http://localhost:3000",
     "https://rozi-khan.vercel.app",
+    "https://rozi-khan.onrender.com",
   ]);
 
   if (allowlist.has(origin)) return true;
 
   // Allow ALL Vercel preview deployments
   // e.g. https://rozi-khan-j103hdoda-gauravkantdev-9489s-projects.vercel.app
-  try {
-    const { hostname } = new URL(origin);
-    return hostname.endsWith(".vercel.app");
-  } catch {
-    return false;
-  }
+    try {
+      const { hostname } = new URL(origin);
+      // Allow Vercel previews and Render deployments
+      if (hostname.endsWith(".vercel.app")) return true;
+      if (hostname.endsWith(".onrender.com")) return true;
+      return false;
+    } catch {
+      return false;
+    }
 };
 
 const buildCorsOptions = () => ({
@@ -103,7 +107,15 @@ const startServer = async () => {
     // Security Middleware
     // ==========================================
 
-    app.use(helmet());
+    // Configure Helmet but ensure Cross-Origin-Resource-Policy is set to allow
+    // cross-origin use for uploaded images. The default Helmet settings may set
+    // this to 'same-origin' which blocks images used on other origins.
+    app.use(
+      helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+        crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+      })
+    );
 
     // ==========================================
     // Logging Middleware
@@ -149,9 +161,16 @@ const startServer = async () => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
+    // Serve uploads and allow cross-origin image requests
     app.use(
       "/uploads",
-      express.static(path.join(__dirname, "uploads"))
+      express.static(path.join(__dirname, "uploads"), {
+        setHeaders(res, filePath) {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+          res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+        },
+      })
     );
 
     // ==========================================
