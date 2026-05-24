@@ -1,4 +1,4 @@
-import { resend } from "./resendClient.js";
+import { getResend } from "./resendClient.js";
 
 const getFromEmail = () =>
   process.env.RESEND_FROM_EMAIL || "RoziKhan <onboarding@resend.dev>";
@@ -31,6 +31,8 @@ export const sendOtpEmail = async (email, otp) => {
       <p>If you did not request this, you can ignore this email.</p>
     </div>
   `;
+
+  const resend = getResend();
 
   const result = await resend.emails.send({
     from: getFromEmail(),
