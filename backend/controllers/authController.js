@@ -68,7 +68,6 @@ export const sendRegisterOtp = async (req, res) => {
       email,
       provider: "resend",
       id: emailResult?.data?.id,
-      error: emailResult?.error,
     });
 
     return res.status(200).json({
@@ -78,9 +77,16 @@ export const sendRegisterOtp = async (req, res) => {
     });
   } catch (error) {
     console.error("[auth] sendRegisterOtp error:", error);
+
+    const message =
+      error?.message?.includes("Test mode") ||
+      error?.message?.includes("your own email")
+        ? error.message
+        : "Failed to send OTP. Please try again.";
+
     return res.status(500).json({
       success: false,
-      message: "Failed to send OTP. Please try again.",
+      message,
       error: process.env.NODE_ENV === "production" ? undefined : error.message,
     });
   }

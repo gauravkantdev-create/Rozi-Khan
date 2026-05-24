@@ -32,5 +32,27 @@ export const sendOtpEmail = async (email, otp) => {
     html,
   });
 
+  if (result?.error) {
+    console.error("[email] Resend API error:", result.error);
+
+    const resendMessage =
+      result.error.message ||
+      "Email provider rejected the request. Please try again later.";
+
+    // onboarding@resend.dev can only email the Resend account owner
+    if (/only send testing emails to your own email/i.test(resendMessage)) {
+      throw new Error(
+        "Test mode: OTP can only be sent to your Resend account email. Use that email, or verify your own domain in Resend."
+      );
+    }
+
+    throw new Error(resendMessage);
+  }
+
+  console.log("[email] Resend email queued:", {
+    to: email,
+    id: result?.data?.id,
+  });
+
   return result;
 };
