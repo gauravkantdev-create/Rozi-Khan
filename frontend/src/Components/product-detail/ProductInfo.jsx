@@ -1,5 +1,6 @@
 import QuantitySelector from "./QuantitySelector";
 import useThemeMode from "../../hooks/useThemeMode";
+import { formatUsdFromInr } from "../../utils/currency";
 
 function ProductInfo({ product, quantity, onQuantityChange, onAddToCart }) {
   const { isDark } = useThemeMode();
@@ -50,7 +51,7 @@ function ProductInfo({ product, quantity, onQuantityChange, onAddToCart }) {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">Unit price</p>
             <p className={`mt-2 text-4xl font-black ${isDark ? "text-white" : "text-slate-950"}`}>
-              ${price.toFixed(2)}
+              {formatUsdFromInr(price)}
             </p>
           </div>
 

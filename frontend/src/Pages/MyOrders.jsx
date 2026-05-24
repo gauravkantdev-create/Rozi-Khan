@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { cancelOrder, getMyOrders } from "../Services/orderService";
 import useThemeMode from "../hooks/useThemeMode";
-
-const currency = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatUsdFromInr } from "../utils/currency";
 
 const statusStyles = {
   Pending: "bg-amber-500/10 text-amber-500 border-amber-400/30",
@@ -109,7 +104,7 @@ function MyOrders() {
                   </div>
                   <div>
                     <p className={`text-xs font-black uppercase ${isDark ? "text-gray-400" : "text-slate-500"}`}>Total</p>
-                    <p className="mt-1 font-bold">{currency.format(order.totalPrice)}</p>
+                    <p className="mt-1 font-bold">{formatUsdFromInr(order.totalPrice)}</p>
                   </div>
                   <div>
                     <p className={`text-xs font-black uppercase ${isDark ? "text-gray-400" : "text-slate-500"}`}>Ship to</p>

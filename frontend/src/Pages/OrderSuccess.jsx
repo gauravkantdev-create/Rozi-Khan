@@ -1,11 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import useThemeMode from "../hooks/useThemeMode";
-
-const currency = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatUsdFromInr } from "../utils/currency";
 
 function OrderSuccess() {
   const { isDark } = useThemeMode();
@@ -34,7 +29,7 @@ function OrderSuccess() {
           </div>
           <div className="flex justify-between gap-4">
             <span className={isDark ? "text-gray-400" : "text-slate-500"}>Total</span>
-            <strong>{currency.format(state?.total || order?.totalPrice || 0)}</strong>
+            <strong>{formatUsdFromInr(state?.total || order?.totalPrice || 0)}</strong>
           </div>
           <div className="flex justify-between gap-4">
             <span className={isDark ? "text-gray-400" : "text-slate-500"}>Delivery estimate</span>

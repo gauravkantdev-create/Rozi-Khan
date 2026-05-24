@@ -2,12 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import useCart from "../hooks/useCart";
 import useThemeMode from "../hooks/useThemeMode";
-
-const currency = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatUsdFromInr } from "../utils/currency";
 
 function CartImage({ item }) {
   const [failed, setFailed] = useState(false);
@@ -147,9 +142,9 @@ function Cart() {
                       </div>
 
                       <div className="text-left sm:text-right">
-                        <p className="text-xl font-black">{currency.format(itemTotal)}</p>
+                        <p className="text-xl font-black">{formatUsdFromInr(itemTotal)}</p>
                         <p className={`mt-1 text-xs ${isDark ? "text-gray-400" : "text-slate-500"}`}>
-                          {currency.format(item.price)} each
+                          {formatUsdFromInr(item.price)} each
                         </p>
                       </div>
                     </article>
@@ -160,7 +155,7 @@ function Cart() {
               <div className="border-t border-slate-200 p-5 text-right dark:border-white/10">
                 <span className="text-lg">
                   Subtotal ({totals.itemCount} item{totals.itemCount === 1 ? "" : "s"}):{" "}
-                  <strong>{currency.format(totals.subtotal)}</strong>
+                  <strong>{formatUsdFromInr(totals.subtotal)}</strong>
                 </span>
               </div>
             </section>
@@ -174,7 +169,7 @@ function Cart() {
                 <p className="text-xl">
                   Subtotal ({totals.itemCount} item{totals.itemCount === 1 ? "" : "s"}):
                 </p>
-                <p className="mt-1 text-2xl font-black">{currency.format(totals.grandTotal)}</p>
+                <p className="mt-1 text-2xl font-black">{formatUsdFromInr(totals.grandTotal)}</p>
               </div>
 
               <Link
@@ -200,13 +195,13 @@ function Cart() {
               </div>
 
               <div className="mt-5 space-y-3 border-t border-slate-200 pt-5 text-sm dark:border-white/10">
-                <div className="flex justify-between"><span>Items</span><strong>{currency.format(totals.subtotal)}</strong></div>
-                <div className="flex justify-between"><span>Delivery</span><strong>{totals.shippingFee ? currency.format(totals.shippingFee) : "Free"}</strong></div>
-                <div className="flex justify-between"><span>Platform fee</span><strong>{currency.format(totals.platformFee)}</strong></div>
-                {totals.discount > 0 && <div className="flex justify-between text-emerald-500"><span>Discount</span><strong>-{currency.format(totals.discount)}</strong></div>}
+                <div className="flex justify-between"><span>Items</span><strong>{formatUsdFromInr(totals.subtotal)}</strong></div>
+                <div className="flex justify-between"><span>Delivery</span><strong>{totals.shippingFee ? formatUsdFromInr(totals.shippingFee) : "Free"}</strong></div>
+                <div className="flex justify-between"><span>Platform fee</span><strong>{formatUsdFromInr(totals.platformFee)}</strong></div>
+                {totals.discount > 0 && <div className="flex justify-between text-emerald-500"><span>Discount</span><strong>-{formatUsdFromInr(totals.discount)}</strong></div>}
                 <div className="flex justify-between border-t border-slate-200 pt-3 text-lg dark:border-white/10">
                   <span className="font-black">Order total</span>
-                  <strong>{currency.format(totals.grandTotal)}</strong>
+                  <strong>{formatUsdFromInr(totals.grandTotal)}</strong>
                 </div>
               </div>
             </aside>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import useThemeMode from "../hooks/useThemeMode";
+import { convertRupeesToDollars, formatUsd } from "../utils/currency";
 
 const fallbackImage =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640' viewBox='0 0 640 640'%3E%3Crect width='640' height='640' fill='%23f1f5f9'/%3E%3Crect x='118' y='156' width='404' height='328' rx='34' fill='%23ffffff' stroke='%23cbd5e1' stroke-width='12'/%3E%3Cpath d='M178 418l98-114 74 82 54-62 74 94H178z' fill='%232563eb' opacity='.16'/%3E%3Ccircle cx='414' cy='246' r='42' fill='%2310b981' opacity='.22'/%3E%3Ctext x='320' y='536' text-anchor='middle' font-family='Arial' font-size='30' font-weight='700' fill='%23475569'%3ERoziKhan Product%3C/text%3E%3C/svg%3E";
@@ -12,7 +13,8 @@ function ProductCard({ product }) {
   const stock = Number(product.stock || 0);
   const inStock = stock > 0;
   const price = Number(product.price || 0);
-  const estimatedProfit = Math.max(Math.round(price * 0.32), 120);
+  const usdPrice = convertRupeesToDollars(price);
+  const estimatedProfit = Math.max(Math.round(usdPrice * 0.32), 2);
 
   return (
     <Link
@@ -93,12 +95,12 @@ function ProductCard({ product }) {
           <div className="flex items-center justify-between gap-3">
             <span className={isDark ? "text-gray-400" : "text-slate-500"}>Supplier cost</span>
             <span className={`font-black ${isDark ? "text-white" : "text-slate-950"}`}>
-              ${price.toFixed(0)}
+              {formatUsd(usdPrice)}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className={isDark ? "text-gray-400" : "text-slate-500"}>Est. profit</span>
-            <span className="font-black text-emerald-500">${estimatedProfit}</span>
+            <span className="font-black text-emerald-500">{formatUsd(estimatedProfit)}</span>
           </div>
         </div>
 

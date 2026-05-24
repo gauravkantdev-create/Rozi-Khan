@@ -9,12 +9,7 @@ import useThemeMode from "../hooks/useThemeMode";
 import useAuth from "../hooks/useAuth";
 import { clearCart, getCartTotals, readCart } from "../utils/cart";
 import { getAuthToken, isTokenExpired } from "../utils/auth";
-
-const currency = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatUsdFromInr } from "../utils/currency";
 
 const steps = ["Shipping", "Billing", "Payment", "Review"];
 
@@ -518,7 +513,7 @@ function Checkout() {
                           Qty {item.quantity} / {item.supplier}
                         </p>
                       </div>
-                      <strong>{currency.format(item.price * item.quantity)}</strong>
+                      <strong>{formatUsdFromInr(item.price * item.quantity)}</strong>
                     </div>
                   ))}
                 </div>
@@ -586,12 +581,12 @@ function Checkout() {
           <aside className={`h-max rounded-2xl border p-5 shadow-2xl lg:sticky lg:top-28 ${isDark ? "border-white/10 bg-[#0c0d10]" : "border-slate-200 bg-white"}`}>
             <h2 className="text-2xl font-black">Summary</h2>
             <div className="mt-5 space-y-3 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><strong>{currency.format(totals.subtotal)}</strong></div>
-              <div className="flex justify-between"><span>Platform fee</span><strong>{currency.format(totals.platformFee)}</strong></div>
-              <div className="flex justify-between"><span>Shipping</span><strong>{totals.shippingFee ? currency.format(totals.shippingFee) : "Free"}</strong></div>
-              {totals.discount > 0 && <div className="flex justify-between text-emerald-500"><span>Discount</span><strong>-{currency.format(totals.discount)}</strong></div>}
+              <div className="flex justify-between"><span>Subtotal</span><strong>{formatUsdFromInr(totals.subtotal)}</strong></div>
+              <div className="flex justify-between"><span>Platform fee</span><strong>{formatUsdFromInr(totals.platformFee)}</strong></div>
+              <div className="flex justify-between"><span>Shipping</span><strong>{totals.shippingFee ? formatUsdFromInr(totals.shippingFee) : "Free"}</strong></div>
+              {totals.discount > 0 && <div className="flex justify-between text-emerald-500"><span>Discount</span><strong>-{formatUsdFromInr(totals.discount)}</strong></div>}
               <div className="border-t border-slate-200 pt-4 text-lg font-black dark:border-white/10">
-                <div className="flex justify-between"><span>Total</span><span className="text-blue-500">{currency.format(totals.grandTotal)}</span></div>
+                <div className="flex justify-between"><span>Total</span><span className="text-blue-500">{formatUsdFromInr(totals.grandTotal)}</span></div>
               </div>
             </div>
             <div className={`mt-6 rounded-xl p-4 ${isDark ? "bg-white/5" : "bg-slate-50"}`}>

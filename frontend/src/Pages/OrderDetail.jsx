@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { cancelOrder, getOrderById } from "../Services/orderService";
 import useThemeMode from "../hooks/useThemeMode";
-
-const currency = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatUsdFromInr } from "../utils/currency";
 
 const statusSteps = ["Pending", "Processing", "Shipped", "Delivered"];
 
@@ -234,7 +229,7 @@ function OrderDetail() {
                       )}
                     </div>
                     <div className="text-left sm:text-right">
-                      <p className="font-black">{currency.format(item.price * item.quantity)}</p>
+                      <p className="font-black">{formatUsdFromInr(item.price * item.quantity)}</p>
                       <p className={`mt-1 text-sm ${isDark ? "text-gray-400" : "text-slate-500"}`}>
                         Qty {item.quantity}
                       </p>
@@ -279,13 +274,13 @@ function OrderDetail() {
             <div className={`rounded border p-5 shadow-sm ${isDark ? "border-white/10 bg-[#131921]" : "border-slate-200 bg-white"}`}>
               <h2 className="text-xl font-black">Order summary</h2>
               <div className="mt-4 space-y-3 text-sm">
-                <div className="flex justify-between"><span>Items</span><strong>{currency.format(order.itemsPrice)}</strong></div>
-                <div className="flex justify-between"><span>Delivery</span><strong>{order.shippingPrice ? currency.format(order.shippingPrice) : "Free"}</strong></div>
-                <div className="flex justify-between"><span>Platform fee</span><strong>{currency.format(order.platformFee)}</strong></div>
-                {order.discount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><strong>-{currency.format(order.discount)}</strong></div>}
+                <div className="flex justify-between"><span>Items</span><strong>{formatUsdFromInr(order.itemsPrice)}</strong></div>
+                <div className="flex justify-between"><span>Delivery</span><strong>{order.shippingPrice ? formatUsdFromInr(order.shippingPrice) : "Free"}</strong></div>
+                <div className="flex justify-between"><span>Platform fee</span><strong>{formatUsdFromInr(order.platformFee)}</strong></div>
+                {order.discount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><strong>-{formatUsdFromInr(order.discount)}</strong></div>}
                 <div className="flex justify-between border-t border-slate-200 pt-3 text-lg dark:border-white/10">
                   <span className="font-black">Order total</span>
-                  <strong>{currency.format(order.totalPrice)}</strong>
+                  <strong>{formatUsdFromInr(order.totalPrice)}</strong>
                 </div>
               </div>
             </div>

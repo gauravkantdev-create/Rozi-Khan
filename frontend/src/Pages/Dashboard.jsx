@@ -4,12 +4,7 @@ import API from "../Services/api";
 import { getAllOrders, updateOrderStatus } from "../Services/orderService";
 import useAuth from "../hooks/useAuth";
 import useThemeMode from "../hooks/useThemeMode";
-
-const currency = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatUsdFromInr } from "../utils/currency";
 
 const orderStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
@@ -144,7 +139,9 @@ function Dashboard() {
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     setUploading(true);
     setFormMessage({ type: "", text: "" });
@@ -153,12 +150,7 @@ function Dashboard() {
     uploadData.append("image", file);
 
     try {
-      const { data } = await API.post("/upload", uploadData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const { data } = await API.post("/upload", uploadData);
 
       if (data.success) {
         setFormData((prev) => ({ ...prev, image: data.url }));
@@ -351,7 +343,7 @@ function Dashboard() {
                 ["Total Products", overviewStats.totalProducts, "Products available in the catalog."],
                 ["Active Stock", overviewStats.activeProducts, "Items ready for customers."],
                 ["Low Stock", overviewStats.lowStockProducts, "Products needing attention."],
-                ["Revenue", currency.format(orderStats?.totalRevenue || 0), "Confirmed platform order value."],
+                ["Revenue", formatUsdFromInr(orderStats?.totalRevenue || 0), "Confirmed platform order value."],
               ].map(([label, value, description]) => (
                 <div key={label} className={`rounded-2xl border p-6 shadow-xl ${panelClass}`}>
                   <p className={`text-sm font-bold ${mutedText}`}>{label}</p>
@@ -509,8 +501,11 @@ function Dashboard() {
                     </select>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className={`font-medium ${mutedText}`}>Price (₹) *</label>
+                    <label className={`font-medium ${mutedText}`}>Price (USD storefront) *</label>
                     <input type="number" name="price" step="0.01" required value={formData.price} onChange={handleFormChange} className={`rounded-xl border p-3 outline-none transition-colors ${inputClass}`} />
+                    <p className={`text-xs ${mutedText}`}>
+                      Storefront will display this value in USD: {formatUsdFromInr(formData.price)}
+                    </p>
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className={`font-medium ${mutedText}`}>Stock *</label>
@@ -739,12 +734,12 @@ function Dashboard() {
                           <div className="flex items-center justify-between gap-3">
                             <span className={isDark ? "text-gray-400" : "text-slate-500"}>Supplier cost</span>
                             <span className={`font-black ${isDark ? "text-white" : "text-slate-950"}`}>
-                              ₹{Number(formData.price || 0).toFixed(2)}
+                              {formatUsdFromInr(formData.price)}
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-3">
                             <span className={isDark ? "text-gray-400" : "text-slate-500"}>Est. profit</span>
-                            <span className="font-black text-emerald-500">₹{Math.max(Math.round(Number(formData.price || 0) * 0.32), 120)}</span>
+                            <span className="font-black text-emerald-500">{formatUsdFromInr(Math.max(Math.round(Number(formData.price || 0) * 0.32), 120))}</span>
                           </div>
                         </div>
 
@@ -866,7 +861,7 @@ function Dashboard() {
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {[
-                ["Revenue", currency.format(orderStats?.totalRevenue || 0)],
+                ["Revenue", formatUsdFromInr(orderStats?.totalRevenue || 0)],
                 ["Pending", orderStats?.pendingOrders || 0],
                 ["Delivered", orderStats?.deliveredOrders || 0],
                 ["Cancelled", orderStats?.cancelledOrders || 0],
@@ -944,7 +939,7 @@ function Dashboard() {
                               <p className={`text-xs ${mutedText}`}>{order.orderItems.length} supplier item{order.orderItems.length === 1 ? "" : "s"}</p>
                             </div>
                           </td>
-                          <td className="p-4 font-black text-blue-500">{currency.format(order.totalPrice)}</td>
+                          <td className="p-4 font-black text-blue-500">{formatUsdFromInr(order.totalPrice)}</td>
                           <td className="p-4">
                             <select
                               value={order.status}
@@ -985,7 +980,7 @@ function Dashboard() {
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {[
-                ["Inventory Value", currency.format(overviewStats.catalogValue)],
+                ["Inventory Value", formatUsdFromInr(overviewStats.catalogValue)],
                 ["Active Stock", overviewStats.activeProducts],
                 ["Low Stock", overviewStats.lowStockProducts],
                 ["Out of Stock", overviewStats.outOfStockProducts],
