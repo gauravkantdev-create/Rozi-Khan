@@ -32,7 +32,19 @@ function Login() {
         replace: true,
       });
     } catch (error) {
-      setMessage(error.response?.data?.message || "Invalid credentials. Please try again.");
+      const apiMessage = error.response?.data?.message;
+
+      if (!error.response) {
+        setMessage("Server tak connection nahi bana. Internet ya API URL check karo.");
+      } else if (apiMessage === "User not found") {
+        setMessage(
+          "Is email ka account live server par nahi hai. Pehle isi website par Register karo, phir Login karo."
+        );
+      } else if (apiMessage === "Please verify your email before login") {
+        setMessage("Pehle email OTP verify karke register complete karo.");
+      } else {
+        setMessage(apiMessage || "Invalid credentials. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

@@ -13,12 +13,6 @@ export const sendOtpEmail = async (email, otp) => {
     throw new Error("RESEND_API_KEY is missing. Add it in Render environment variables.");
   }
 
-  if (isTestSender()) {
-    throw new Error(
-      "Email setup incomplete: verify your domain in Resend and set RESEND_FROM_EMAIL to an address on that domain (not onboarding@resend.dev)."
-    );
-  }
-
   const subject = "Verify your RoziKhan email";
   const text = `Your RoziKhan verification OTP is ${otp}. It expires in 10 minutes.`;
 
