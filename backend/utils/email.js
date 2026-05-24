@@ -1,14 +1,22 @@
 import { resend } from "./resendClient.js";
 
-const getFromEmail = () => {
-  // Resend requires a verified sender domain for production.
-  // Use RESEND_FROM_EMAIL like: "RoziKhan <no-reply@yourdomain.com>"
-  return process.env.RESEND_FROM_EMAIL || "RoziKhan <onboarding@resend.dev>";
-};
+const getFromEmail = () =>
+  process.env.RESEND_FROM_EMAIL || "RoziKhan <onboarding@resend.dev>";
+
+const isTestSender = () => getFromEmail().includes("@resend.dev");
+
+/** True when OTP can be sent to any recipient (verified custom domain). */
+export const canSendOtpToAnyEmail = () => !isTestSender();
 
 export const sendOtpEmail = async (email, otp) => {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY is missing. Add it in Render environment variables.");
+  }
+
+  if (isTestSender()) {
+    throw new Error(
+      "Email setup incomplete: verify your domain in Resend and set RESEND_FROM_EMAIL to an address on that domain (not onboarding@resend.dev)."
+    );
   }
 
   const subject = "Verify your RoziKhan email";
@@ -38,13 +46,6 @@ export const sendOtpEmail = async (email, otp) => {
     const resendMessage =
       result.error.message ||
       "Email provider rejected the request. Please try again later.";
-
-    // onboarding@resend.dev can only email the Resend account owner
-    if (/only send testing emails to your own email/i.test(resendMessage)) {
-      throw new Error(
-        "Test mode: OTP can only be sent to your Resend account email. Use that email, or verify your own domain in Resend."
-      );
-    }
 
     throw new Error(resendMessage);
   }

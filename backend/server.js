@@ -33,6 +33,16 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 
 dotenv.config();
 
+const resendFrom = process.env.RESEND_FROM_EMAIL || "";
+if (resendFrom.includes("@resend.dev") || !resendFrom) {
+  console.warn("=================================");
+  console.warn(" EMAIL: Using Resend TEST sender.");
+  console.warn(" OTP will NOT reach random users until you:");
+  console.warn(" 1) Verify your domain at resend.com/domains");
+  console.warn(" 2) Set RESEND_FROM_EMAIL=RoziKhan <no-reply@yourdomain.com>");
+  console.warn("=================================");
+}
+
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
 
