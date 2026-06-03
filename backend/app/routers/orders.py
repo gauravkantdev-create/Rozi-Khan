@@ -31,7 +31,7 @@ def create_order(
     return {
         "success": True,
         "message": "Order created successfully",
-        "order": OrderResponse.model_validate(order)
+        "order": OrderResponse.model_validate(order, context={"obj": order})
     }
 
 @router.get("/", response_model=OrderDashboardResponse)
@@ -41,7 +41,17 @@ def get_all_orders(
     current_user: User = Depends(AuthorizeRoles("admin")),
     db: Session = Depends(get_db)
 ):
-    return get_all_orders_service(status_filter=status, keyword=keyword, db=db)
+    # Obtain raw orders and stats from service
+    service_result = get_all_orders_service(status_filter=status, keyword=keyword, db=db)
+    raw_orders = service_result["orders"]
+    stats = service_result["stats"]
+    # Serialize each Order object to the pydantic response model
+    serialized_orders = [OrderResponse.model_validate(o, context={"obj": o}) for o in raw_orders]
+    return {
+        "success": True,
+        "orders": serialized_orders,
+        "stats": stats,
+    }
 
 @router.get("/my-orders", response_model=dict)
 def get_my_orders(
@@ -49,7 +59,7 @@ def get_my_orders(
     db: Session = Depends(get_db)
 ):
     orders = get_my_orders_service(current_user.id, db)
-    serialized = [OrderResponse.model_validate(o) for o in orders]
+    serialized = [OrderResponse.model_validate(o, context={"obj": o}) for o in orders]
     return {
         "success": True,
         "orders": serialized
@@ -65,7 +75,7 @@ def get_order_by_id(
     order = get_order_by_id_service(id, current_user.id, is_admin, db)
     return {
         "success": True,
-        "order": OrderResponse.model_validate(order)
+        "order": OrderResponse.model_validate(order, context={"obj": order})
     }
 
 @router.patch("/{id}/status", response_model=dict)
@@ -81,7 +91,7 @@ def update_order_status(
     return {
         "success": True,
         "message": "Order status updated successfully",
-        "order": OrderResponse.model_validate(order)
+        "order": OrderResponse.model_validate(order, context={"obj": order})
     }
 
 @router.patch("/{id}/cancel", response_model=dict)
@@ -96,5 +106,5 @@ def cancel_order(
     return {
         "success": True,
         "message": "Order cancelled successfully",
-        "order": OrderResponse.model_validate(order)
+        "order": OrderResponse.model_validate(order, context={"obj": order})
     }

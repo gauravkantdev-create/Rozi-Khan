@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator
-from typing import List, Optional
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+from typing import List, Optional, Any
 from datetime import datetime
 from decimal import Decimal
 
@@ -77,74 +77,67 @@ class OrderUserResponse(BaseModel):
 class OrderResponse(BaseModel):
     id: str = Field(..., alias="_id")
     user: OrderUserResponse
-    orderItems: List[OrderItemResponse] = Field(..., alias="order_items")
+    order_items: List[OrderItemResponse] = Field(..., alias="orderItems")
     shippingAddress: AddressSchema
     billingAddress: AddressSchema
-    razorpayOrderId: Optional[str] = Field(None, alias="razorpayOrderId")
-    razorpayPaymentId: Optional[str] = Field(None, alias="razorpayPaymentId")
-    razorpaySignature: Optional[str] = Field(None, alias="razorpaySignature")
-    paymentMethod: str = Field(..., alias="paymentMethod")
-    paymentStatus: str = Field(..., alias="paymentStatus")
+    razorpay_order_id: Optional[str] = Field(None, alias="razorpayOrderId")
+    razorpay_payment_id: Optional[str] = Field(None, alias="razorpayPaymentId")
+    razorpay_signature: Optional[str] = Field(None, alias="razorpaySignature")
+    payment_method: str = Field(..., alias="paymentMethod")
+    payment_status: str = Field(..., alias="paymentStatus")
     status: str
-    statusHistory: List[StatusHistoryResponse] = Field(..., alias="status_history")
-    cancelReason: Optional[str] = Field(None, alias="cancelReason")
-    cancelledAt: Optional[datetime] = Field(None, alias="cancelledAt")
-    itemsPrice: Decimal = Field(..., alias="itemsPrice")
-    platformFee: Decimal = Field(..., alias="platformFee")
-    shippingPrice: Decimal = Field(..., alias="shippingPrice")
+    status_history: List[StatusHistoryResponse] = Field(..., alias="statusHistory")
+    cancel_reason: Optional[str] = Field(None, alias="cancelReason")
+    cancelled_at: Optional[datetime] = Field(None, alias="cancelledAt")
+    items_price: Decimal = Field(..., alias="itemsPrice")
+    platform_fee: Decimal = Field(..., alias="platformFee")
+    shipping_price: Decimal = Field(..., alias="shippingPrice")
     discount: Decimal = Field(..., alias="discount")
-    totalPrice: Decimal = Field(..., alias="totalPrice")
-    deliveryEstimate: str = Field(..., alias="deliveryEstimate")
-    createdAt: datetime = Field(..., alias="created_at")
-    updatedAt: datetime = Field(..., alias="updated_at")
+    total_price: Decimal = Field(..., alias="totalPrice")
+    delivery_estimate: str = Field(..., alias="deliveryEstimate")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
 
     class Config:
         populate_by_name = True
         from_attributes = True
 
-    @field_validator('shippingAddress', mode='before')
+    @model_validator(mode='before')
     @classmethod
-    def get_shipping_address(cls, value, info):
-        # If value is already an AddressSchema or dict, return it
-        if isinstance(value, (AddressSchema, dict)):
-            return value
-        # If value is an Order SQLAlchemy object, we can construct shipping details
-        obj = info.context.get('obj') if info.context else None
-        if not obj:
-            obj = value
-        if hasattr(obj, 'shipping_fullname'):
-            return {
-                "fullName": obj.shipping_fullname,
-                "email": obj.shipping_email,
-                "phone": obj.shipping_phone,
-                "address": obj.shipping_address,
-                "city": obj.shipping_city,
-                "state": obj.shipping_state,
-                "postalCode": obj.shipping_postalcode,
-                "country": obj.shipping_country
+    def populate_addresses(cls, data: Any):
+        if hasattr(data, 'shipping_fullname'):
+            # It's an ORM object, let's construct the addresses
+            shipping = {
+                "fullName": data.shipping_fullname,
+                "email": data.shipping_email,
+                "phone": data.shipping_phone,
+                "address": data.shipping_address,
+                "city": data.shipping_city,
+                "state": data.shipping_state,
+                "postalCode": data.shipping_postalcode,
+                "country": data.shipping_country
             }
-        return value
-
-    @field_validator('billingAddress', mode='before')
-    @classmethod
-    def get_billing_address(cls, value, info):
-        if isinstance(value, (AddressSchema, dict)):
-            return value
-        obj = info.context.get('obj') if info.context else None
-        if not obj:
-            obj = value
-        if hasattr(obj, 'billing_fullname'):
-            return {
-                "fullName": obj.billing_fullname,
-                "email": obj.billing_email,
-                "phone": obj.billing_phone,
-                "address": obj.billing_address,
-                "city": obj.billing_city,
-                "state": obj.billing_state,
-                "postalCode": obj.billing_postalcode,
-                "country": obj.billing_country
+            billing = {
+                "fullName": data.billing_fullname,
+                "email": data.billing_email,
+                "phone": data.billing_phone,
+                "address": data.billing_address,
+                "city": data.billing_city,
+                "state": data.billing_state,
+                "postalCode": data.billing_postalcode,
+                "country": data.billing_country
             }
-        return value
+            
+            # Since Pydantic v2 mode='before' validator for model can return a dict when parsing from an object
+            return {
+                **{k: getattr(data, k) for k in data.__dict__ if not k.startswith('_')},
+                "shippingAddress": shipping,
+                "billingAddress": billing,
+                "order_items": getattr(data, 'order_items', []),
+                "status_history": getattr(data, 'status_history', []),
+                "user": getattr(data, 'user', None)
+            }
+        return data
 
 
 class OrderStatsDashboard(BaseModel):

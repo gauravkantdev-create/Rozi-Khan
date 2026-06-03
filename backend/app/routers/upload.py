@@ -1,8 +1,9 @@
 import os
 import time
-import shutil
+# import shutil  # No longer needed for Cloudinary uploads
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Request, Response, status
 from app.middleware.auth import AuthorizeRoles
+from app.utils.cloudinary import upload_image_to_cloudinary
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
@@ -44,23 +45,15 @@ async def upload_image(
     filepath = os.path.join(UPLOAD_DIR, filename)
     
     try:
-        # Save file to disk
-        with open(filepath, "wb") as f:
-            f.write(contents)
-            
-        # Construct URL to access the uploaded file
-        base_url = str(request.base_url)
-        if base_url.endswith("/"):
-            base_url = base_url[:-1]
-            
-        # Keep path as /api prefix or directly root level.
-        # Since static folder is mounted at /uploads, we point to base_url/uploads/filename
-        image_url = f"{base_url}/uploads/{filename}"
-        
+        # Upload image to Cloudinary
+        upload_result = upload_image_to_cloudinary(contents, filename)
+        image_url = upload_result.get("secure_url")
+        if not image_url:
+            raise HTTPException(status_code=500, detail="Cloudinary upload failed")
         return {
             "success": True,
             "message": "Image uploaded successfully",
-            "url": image_url
+            "url": image_url,
         }
     except Exception as e:
         raise HTTPException(

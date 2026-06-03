@@ -61,6 +61,32 @@ class Order(Base):
     order_items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan", lazy="joined")
     status_history = relationship("OrderStatusHistory", back_populates="order", cascade="all, delete-orphan", lazy="joined")
 
+    @property
+    def shippingAddress(self):
+        return {
+            "fullName": self.shipping_fullname,
+            "email": self.shipping_email,
+            "phone": self.shipping_phone,
+            "address": self.shipping_address,
+            "city": self.shipping_city,
+            "state": self.shipping_state,
+            "postalCode": self.shipping_postalcode,
+            "country": self.shipping_country
+        }
+
+    @property
+    def billingAddress(self):
+        return {
+            "fullName": self.billing_fullname,
+            "email": self.billing_email,
+            "phone": self.billing_phone,
+            "address": self.billing_address,
+            "city": self.billing_city,
+            "state": self.billing_state,
+            "postalCode": self.billing_postalcode,
+            "country": self.billing_country
+        }
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"
