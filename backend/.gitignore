@@ -1,2 +1,26 @@
-node_modules
+# Python Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
 .env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Uploads directory contents (local testing images)
+uploads/*
+!uploads/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
