@@ -1,21 +1,41 @@
-from pydantic import BaseModel
-from app.schemas.order import OrderCreateRequest
+from pydantic import BaseModel, condecimal
+from typing import Optional, List
+from datetime import datetime
 
-class RazorpayOrderRequest(BaseModel):
-    amount: float
+class WalletDepositRequest(BaseModel):
+    amount: condecimal(gt=0, max_digits=10, decimal_places=2) # type: ignore
 
-class RazorpayOrderDetails(BaseModel):
+class TransactionResponse(BaseModel):
     id: str
-    amount: int
+    wallet_id: str
+    order_id: Optional[str] = None
+    type: str
+    amount: float
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class WalletResponse(BaseModel):
+    id: str
+    retailer_id: str
+    balance: float
     currency: str
+    transactions: List[TransactionResponse] = []
 
-class RazorpayOrderResponse(BaseModel):
-    success: bool
-    order: RazorpayOrderDetails
-    key: str
+    class Config:
+        from_attributes = True
 
-class PaymentVerificationRequest(BaseModel):
-    razorpay_order_id: str
-    razorpay_payment_id: str
-    razorpay_signature: str
-    orderData: OrderCreateRequest
+class PayoutResponse(BaseModel):
+    id: str
+    supplier_id: str
+    order_id: str
+    amount: float
+    status: str
+    reference_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

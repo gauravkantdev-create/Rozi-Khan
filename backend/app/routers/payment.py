@@ -1,46 +1,42 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
 from app.models.user import User
-from app.schemas.payment import (
-    RazorpayOrderRequest,
-    RazorpayOrderResponse,
-    PaymentVerificationRequest,
-)
-from app.schemas.order import OrderResponse
-from app.services.payment import (
-    create_razorpay_order_service,
-    verify_payment_service,
-)
-from app.config import settings
+from app.schemas.payment import WalletResponse, WalletDepositRequest, PayoutResponse
+from app.services.payment_service import PaymentService
+from app.middleware.auth import AuthorizeRoles
 
-router = APIRouter(prefix="/payment", tags=["payment"])
+router = APIRouter(tags=["Payments & Ledger"])
 
-@router.get("/key", status_code=status.HTTP_200_OK)
-def get_key():
-    return {
-        "success": True,
-        "key": settings.RAZORPAY_KEY_ID
-    }
-
-@router.post("/create-order", response_model=RazorpayOrderResponse, status_code=status.HTTP_201_CREATED)
-def create_order(
-    req_data: RazorpayOrderRequest,
-    current_user: User = Depends(get_current_user)
+@router.get("/retailer/wallet", response_model=WalletResponse)
+def get_my_wallet(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("retailer"))
 ):
-    return create_razorpay_order_service(req_data.amount)
+    service = PaymentService(db)
+    return service.get_wallet(user=current_user)
 
-@router.post("/verify", response_model=dict, status_code=status.HTTP_201_CREATED)
-def verify_payment(
-    req_data: PaymentVerificationRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+@router.post("/retailer/wallet/deposit", response_model=WalletResponse)
+def deposit_funds(
+    data: WalletDepositRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("retailer"))
 ):
-    order = verify_payment_service(req_data, current_user.id, db)
-    return {
-        "success": True,
-        "message": "Payment verified and order created successfully",
-        "order": OrderResponse.model_validate(order)
-    }
+    """
+    Simulates a Stripe Top-Up. Adds funds to the Retailer's wallet.
+    """
+    service = PaymentService(db)
+    return service.deposit_funds(user=current_user, data=data)
+
+@router.get("/supplier/payouts", response_model=List[PayoutResponse])
+def get_my_payouts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier"))
+):
+    """
+    Shows money owed to the Supplier for fulfilled orders.
+    """
+    service = PaymentService(db)
+    return service.get_supplier_payouts(user=current_user)

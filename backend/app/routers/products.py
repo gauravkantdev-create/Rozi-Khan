@@ -1,104 +1,120 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import List
 
 from app.database import get_db
-from app.middleware.auth import get_current_user, AuthorizeRoles
 from app.models.user import User
 from app.schemas.product import (
-    ProductCreateRequest,
-    ProductResponse,
-    ProductListResponse,
-    ReviewCreateRequest,
+    ProductCatalogCreate, ProductCatalogResponse,
+    ProductCreate, ProductResponse,
+    ProductVariantCreate, ProductVariantResponse,
+    ProductImageCreate, ProductImageResponse
 )
-from app.services.product import (
-    create_product_service,
-    get_products_service,
-    get_single_product_service,
-    update_product_service,
-    delete_product_service,
-    create_product_review_service,
-)
+from app.services.product_service import ProductService
+from app.middleware.auth import AuthorizeRoles
 
-router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter(tags=["Products"])
 
-@router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
-def create_product(
-    req_data: ProductCreateRequest,
-    current_user: User = Depends(AuthorizeRoles("admin")),
-    db: Session = Depends(get_db)
+# -----------------
+# 1. CATALOG APIs
+# -----------------
+@router.post("/products/catalog", response_model=ProductCatalogResponse, status_code=status.HTTP_201_CREATED)
+def create_catalog_item(
+    data: ProductCatalogCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
 ):
-    product = create_product_service(req_data, current_user.id, db)
-    # Serialize product with ProductResponse schema
-    return {
-        "success": True,
-        "message": "Product created successfully",
-        "product": ProductResponse.model_validate(product)
-    }
+    service = ProductService(db)
+    return service.create_catalog_item(admin_user=current_user, data=data)
 
-@router.get("/", response_model=ProductListResponse)
-def get_products(
-    keyword: Optional[str] = Query(None),
-    category: Optional[str] = Query(None),
-    limit: Optional[int] = Query(8),
-    page: Optional[int] = Query(1),
-    db: Session = Depends(get_db)
+@router.get("/products/catalog", response_model=List[ProductCatalogResponse])
+def get_catalog_items(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin", "retailer"))
 ):
-    return get_products_service(
-        keyword=keyword,
-        category=category,
-        limit=limit,
-        page=page,
-        db=db
-    )
+    # Minimal read API for catalog
+    service = ProductService(db)
+    return service.repository.get_all_catalog_items()
 
-@router.get("/{id}", response_model=dict)
-def get_single_product(id: str, db: Session = Depends(get_db)):
-    product = get_single_product_service(id, db)
-    return {
-        "success": True,
-        "product": ProductResponse.model_validate(product)
-    }
-
-@router.put("/{id}", response_model=dict)
-def update_product(
-    id: str,
-    req_data: dict, # Let's accept raw dict to support partial updates easily
-    current_user: User = Depends(AuthorizeRoles("admin")),
-    db: Session = Depends(get_db)
+# -----------------
+# 2. SUPPLIER APIs
+# -----------------
+@router.post("/products/offers", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+def create_product_offer(
+    data: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier", "admin"))
 ):
-    product = update_product_service(id, req_data, db)
-    return {
-        "success": True,
-        "message": "Product updated successfully",
-        "product": ProductResponse.model_validate(product)
-    }
+    service = ProductService(db)
+    return service.create_product_offer(user=current_user, data=data)
 
-@router.delete("/{id}", response_model=dict)
-def delete_product(
-    id: str,
-    current_user: User = Depends(AuthorizeRoles("admin")),
-    db: Session = Depends(get_db)
+@router.post("/products/offers/{product_id}/variants", response_model=ProductVariantResponse, status_code=status.HTTP_201_CREATED)
+def add_product_variant(
+    product_id: str,
+    data: ProductVariantCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier", "admin"))
 ):
-    return delete_product_service(id, db)
+    service = ProductService(db)
+    return service.add_variant(user=current_user, product_id=product_id, data=data)
 
-@router.post("/{id}/reviews", response_model=dict, status_code=status.HTTP_201_CREATED)
-def create_review(
-    id: str,
-    req_data: ReviewCreateRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+# -----------------
+# 3. ADMIN APIs
+# -----------------
+@router.patch("/admin/products/{product_id}/status", response_model=ProductResponse)
+def update_product_status(
+    product_id: str,
+    new_status: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
 ):
-    result = create_product_review_service(
-        product_id=id,
-        req_data=req_data,
-        user_id=current_user.id,
-        user_name=current_user.name,
-        db=db
-    )
-    return {
-        "success": True,
-        "message": result["message"],
-        "product": ProductResponse.model_validate(result["product"]),
-        "review": result["review"]
-    }
+    service = ProductService(db)
+    return service.update_product_status(admin_user=current_user, product_id=product_id, new_status=new_status)
+
+# -----------------
+# 4. SUPPLIER GET & UPDATE APIs
+# -----------------
+@router.get("/products/offers", response_model=List[ProductResponse])
+def list_my_offers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier"))
+):
+    service = ProductService(db)
+    return service.get_supplier_offers(user=current_user)
+
+@router.get("/products/offers/{product_id}", response_model=ProductResponse)
+def get_offer_details(
+    product_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier", "retailer", "admin"))
+):
+    service = ProductService(db)
+    return service.get_supplier_offer(user=current_user, product_id=product_id)
+
+@router.get("/products/offers/{product_id}/variants", response_model=List[ProductVariantResponse])
+def list_offer_variants(
+    product_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier", "retailer", "admin"))
+):
+    service = ProductService(db)
+    return service.get_offer_variants(user=current_user, product_id=product_id)
+
+@router.delete("/products/offers/{product_id}/variants/{variant_id}")
+def delete_variant(
+    product_id: str,
+    variant_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier", "admin"))
+):
+    service = ProductService(db)
+    return service.delete_variant(user=current_user, product_id=product_id, variant_id=variant_id)
+
+@router.delete("/products/offers/{product_id}")
+def archive_offer(
+    product_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("supplier", "admin"))
+):
+    service = ProductService(db)
+    return service.archive_offer(user=current_user, product_id=product_id)

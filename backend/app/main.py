@@ -9,7 +9,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
-from app.routers import auth, products, orders, upload, payment
+from app.routers import auth, products, orders, upload, payment, supplier, retailer, retailer_listing, inventory, integration, webhooks, analytics
 
 app = FastAPI(
     title="Rozi Khan API",
@@ -79,6 +79,14 @@ app.include_router(products.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
+app.include_router(supplier.router, prefix="/api")
+app.include_router(retailer.router, prefix="/api")
+app.include_router(retailer_listing.router, prefix="/api")
+app.include_router(inventory.router, prefix="/api")
+app.include_router(integration.router, prefix="/api")
+app.include_router(webhooks.router, prefix="/api")
+app.include_router(payment.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
 
 # Test / Health Route
 @app.get("/")
