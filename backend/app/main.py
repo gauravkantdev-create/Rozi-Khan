@@ -73,7 +73,10 @@ async def static_headers_middleware(request: Request, call_next):
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+from app.routers import auth, products, orders, upload, payment, supplier, retailer, retailer_listing, inventory, integration, webhooks, analytics, legacy
+
 # Include APIRouters under /api prefix
+app.include_router(legacy.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(products.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
@@ -85,7 +88,6 @@ app.include_router(retailer_listing.router, prefix="/api")
 app.include_router(inventory.router, prefix="/api")
 app.include_router(integration.router, prefix="/api")
 app.include_router(webhooks.router, prefix="/api")
-app.include_router(payment.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 
 # Test / Health Route
