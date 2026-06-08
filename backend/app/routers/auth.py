@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 from app.database import get_db
 from app.middleware.auth import get_current_user
@@ -31,12 +35,14 @@ def test(req_data: SendOtpRequest):
     }
 
 @router.post("/send-otp", status_code=status.HTTP_200_OK)
-def send_otp(req_data: SendOtpRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def send_otp(request: Request, req_data: SendOtpRequest, db: Session = Depends(get_db)):
     result = send_register_otp_service(req_data.email, db)
     return result
 
 @router.post("/register", response_model=AuthSuccessResponse, status_code=status.HTTP_201_CREATED)
-def register(req_data: RegisterRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register(request: Request, req_data: RegisterRequest, db: Session = Depends(get_db)):
     result = register_user_service(
         name=req_data.name,
         email=req_data.email,
@@ -47,7 +53,8 @@ def register(req_data: RegisterRequest, db: Session = Depends(get_db)):
     return result
 
 @router.post("/login", response_model=LoginSuccessResponse, status_code=status.HTTP_200_OK)
-def login(req_data: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, req_data: LoginRequest, db: Session = Depends(get_db)):
     result = login_user_service(
         email=req_data.email,
         password=req_data.password,

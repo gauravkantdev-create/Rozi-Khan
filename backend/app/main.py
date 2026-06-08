@@ -5,14 +5,22 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 from app.config import settings
-from app.routers import auth, products, orders, upload, payment
+from app.routers import auth, products, orders, upload, payment, supplier, retailer, retailer_listing, inventory, integration, webhooks, analytics
 
 app = FastAPI(
     title="Rozi Khan API",
     description="Python FastAPI + PostgreSQL backend for Rozi Khan dropshipping platform",
     version="1.0.0"
 )
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS configuration matching Express app
 ALLOWED_ORIGINS = [
@@ -47,12 +55,22 @@ async def static_headers_middleware(request: Request, call_next):
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+from app.routers import auth, products, orders, upload, payment, supplier, retailer, retailer_listing, inventory, integration, webhooks, analytics, legacy
+
 # Include APIRouters under /api prefix
+app.include_router(legacy.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(products.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
+app.include_router(supplier.router, prefix="/api")
+app.include_router(retailer.router, prefix="/api")
+app.include_router(retailer_listing.router, prefix="/api")
+app.include_router(inventory.router, prefix="/api")
+app.include_router(integration.router, prefix="/api")
+app.include_router(webhooks.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
 
 # Test / Health Route
 @app.get("/")

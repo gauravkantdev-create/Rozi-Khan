@@ -30,8 +30,10 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+import secrets
+
 def generate_otp() -> str:
-    return str(random.randint(100000, 999999))
+    return str(secrets.randbelow(900000) + 100000)
 
 def send_register_otp_service(email: str, db: Session):
     normalized = normalize_email(email)
@@ -74,9 +76,6 @@ def send_register_otp_service(email: str, db: Session):
     
     db.add(otp_record)
     db.commit()
-    
-    # Print to console for easy local debugging/testing
-    print(f"\n[DEV MODE] OTP generated for {normalized}: {otp}\n")
     
     # Send email
     send_otp_email(normalized, otp)
@@ -180,6 +179,10 @@ def login_user_service(email: str, password: str, db: Session):
         
     # Ensure password length does not exceed bcrypt's 72‑byte limit
     # Encode to bytes, truncate, then decode back to string
+<<<<<<< HEAD
+=======
+    # Encode to bytes, truncate, then decode back to string
+>>>>>>> 1210c0c1686911b70557acaf54c4bcb594d6b7c8
     password_bytes = password.encode('utf-8')[:72]
     password = password_bytes.decode('utf-8', errors='ignore')
     if not verify_password(password, user.password):
