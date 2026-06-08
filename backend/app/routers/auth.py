@@ -21,6 +21,15 @@ from app.services.auth import (
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+@router.post("/test", status_code=status.HTTP_200_OK)
+def test(req_data: SendOtpRequest):
+    """Simple test endpoint to verify requests work."""
+    return {
+        "success": True,
+        "message": f"Test received email: {req_data.email}",
+        "provider": "test"
+    }
+
 @router.post("/send-otp", status_code=status.HTTP_200_OK)
 def send_otp(req_data: SendOtpRequest, db: Session = Depends(get_db)):
     result = send_register_otp_service(req_data.email, db)

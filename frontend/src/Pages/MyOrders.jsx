@@ -132,12 +132,12 @@ function MyOrders() {
                     </span>
                   </div>
 
-                {order.status === "Cancelled" && (
-                  <div className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm font-bold text-red-500">
-                    Cancelled {order.cancelledAt ? new Date(order.cancelledAt).toLocaleDateString() : ""}.
-                    {order.cancelReason ? ` Reason: ${order.cancelReason}` : ""}
-                  </div>
-                )}
+                  {order.status === "Cancelled" && (
+                    <div className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm font-bold text-red-500">
+                      Cancelled {order.cancelledAt ? new Date(order.cancelledAt).toLocaleDateString() : ""}.
+                      {order.cancelReason ? ` Reason: ${order.cancelReason}` : ""}
+                    </div>
+                  )}
 
                   <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_220px]">
                     <div className="grid gap-3">
@@ -184,7 +184,7 @@ function MyOrders() {
                       </Link>
                     </div>
                   </div>
-                      </div>
+                </div>
               </article>
             ))}
           </div>

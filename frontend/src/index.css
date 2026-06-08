@@ -1,18 +1,74 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Prata&family=Raleway:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 :root {
   color-scheme: light;
+  font-family: "Raleway", system-ui, sans-serif;
 }
 
 :root[data-theme="dark"] {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
-  background: #f6f7fb;
+  background:
+    linear-gradient(90deg, rgba(197, 169, 146, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(197, 169, 146, 0.08) 1px, transparent 1px),
+    #F3F2EC;
+  background-size: 44px 44px;
+  color: #2F2F2F;
+  text-rendering: geometricPrecision;
 }
 
 :root[data-theme="dark"] body {
-  background: #050505;
+  background:
+    linear-gradient(90deg, rgba(197, 169, 146, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(197, 169, 146, 0.08) 1px, transparent 1px),
+    #F3F2EC;
+}
+
+::selection {
+  background: #C5A992;
+  color: #2F2F2F;
+}
+
+.font-prata {
+  font-family: "Prata", Georgia, serif;
+}
+
+.font-playfair {
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.font-raleway {
+  font-family: "Raleway", system-ui, sans-serif;
+}
+
+.animate-rise-in {
+  animation: rise-in 700ms ease both;
+}
+
+.animate-soft-float {
+  animation: soft-float 5s ease-in-out infinite;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }

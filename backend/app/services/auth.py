@@ -20,7 +20,12 @@ from app.utils.roles import get_user_role
 pwd_context = CryptContext(schemes=["bcrypt", "sha256_crypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    try:
+        return pwd_context.hash(password)
+    except Exception:
+        # Fallback for local development environments where bcrypt may be unavailable
+        from passlib.hash import sha256_crypt
+        return sha256_crypt.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -166,8 +171,8 @@ def login_user_service(email: str, password: str, db: Session):
             detail="User not found"
         )
         
-    # During development, allow login even if email not verified
-    if not user.is_email_verified and settings.NODE_ENV == "development":
+    # During development, allow login even if email is not verified.
+    if not user.is_email_verified and settings.NODE_ENV != "development":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Please verify your email before login"
@@ -175,9 +180,6 @@ def login_user_service(email: str, password: str, db: Session):
         
     # Ensure password length does not exceed bcrypt's 72‑byte limit
     # Encode to bytes, truncate, then decode back to string
-    # Debug log incoming credentials (avoid printing actual password in prod)
-    if settings.NODE_ENV == "development":
-        print(f"[DEBUG] Login attempt: email={normalized}, password={password}")
     password_bytes = password.encode('utf-8')[:72]
     password = password_bytes.decode('utf-8', errors='ignore')
     if not verify_password(password, user.password):
