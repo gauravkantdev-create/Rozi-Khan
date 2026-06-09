@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logo from "../assets/Logo.png";
 import HomeCollections from "../Components/home/HomeCollections";
 import { Container, Eyebrow, PageShell, PrimaryLink, SecondaryLink, SectionHeading, StatCard, surfaceClass } from "../Components/layout/PageShell";
 import useAuthStatus from "../hooks/useAuthStatus";
