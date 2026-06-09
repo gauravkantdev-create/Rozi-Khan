@@ -179,10 +179,6 @@ def login_user_service(email: str, password: str, db: Session):
         
     # Ensure password length does not exceed bcrypt's 72‑byte limit
     # Encode to bytes, truncate, then decode back to string
-<<<<<<< HEAD
-=======
-    # Encode to bytes, truncate, then decode back to string
->>>>>>> 1210c0c1686911b70557acaf54c4bcb594d6b7c8
     password_bytes = password.encode('utf-8')[:72]
     password = password_bytes.decode('utf-8', errors='ignore')
     if not verify_password(password, user.password):
