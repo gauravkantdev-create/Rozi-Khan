@@ -1,9 +1,10 @@
 import datetime
 import random
 import jwt
+import bcrypt
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+from passlib.hash import sha256_crypt
 
 from app.config import settings
 from app.models.user import User
@@ -17,18 +18,35 @@ from app.utils.helpers import (
 )
 from app.utils.roles import get_user_role
 
-pwd_context = CryptContext(schemes=["bcrypt", "sha256_crypt"], deprecated="auto")
+def _bcrypt_password_bytes(password: str) -> bytes:
+    return password.encode("utf-8")[:72]
+
+
+def _is_bcrypt_hash(hashed_password: str) -> bool:
+    return hashed_password.startswith(("$2a$", "$2b$", "$2x$", "$2y$"))
+
 
 def hash_password(password: str) -> str:
     try:
-        return pwd_context.hash(password)
+        return bcrypt.hashpw(_bcrypt_password_bytes(password), bcrypt.gensalt()).decode("utf-8")
     except Exception:
         # Fallback for local development environments where bcrypt may be unavailable
-        from passlib.hash import sha256_crypt
         return sha256_crypt.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    if not hashed_password:
+        return False
+
+    if _is_bcrypt_hash(hashed_password):
+        try:
+            return bcrypt.checkpw(
+                _bcrypt_password_bytes(plain_password),
+                hashed_password.encode("utf-8")
+            )
+        except (TypeError, ValueError):
+            return False
+
+    return sha256_crypt.verify(plain_password, hashed_password)
 
 import secrets
 
@@ -177,10 +195,6 @@ def login_user_service(email: str, password: str, db: Session):
             detail="Please verify your email before login"
         )
         
-    # Ensure password length does not exceed bcrypt's 72‑byte limit
-    # Encode to bytes, truncate, then decode back to string
-    password_bytes = password.encode('utf-8')[:72]
-    password = password_bytes.decode('utf-8', errors='ignore')
     if not verify_password(password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
