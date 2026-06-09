@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logo from "../assets/Logo.png";
 import useAuth from "../hooks/useAuth";
 import useCart from "../hooks/useCart";
 import useThemeMode from "../hooks/useThemeMode";
