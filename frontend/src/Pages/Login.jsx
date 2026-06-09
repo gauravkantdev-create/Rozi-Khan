@@ -52,16 +52,14 @@ function Login() {
 
   return (
     <div
-      className={`flex min-h-screen items-center justify-center px-5 transition-colors duration-500 ${
-        isDark ? "bg-black" : "bg-[#f6f7fb]"
-      }`}
+      className={`flex min-h-screen items-center justify-center px-5 transition-colors duration-500 ${isDark ? "bg-black" : "bg-[#f6f7fb]"
+        }`}
     >
       <div
-        className={`w-[400px] max-w-full rounded-2xl border p-8 shadow-2xl sm:p-10 ${
-          isDark
+        className={`w-[400px] max-w-full rounded-2xl border p-8 shadow-2xl sm:p-10 ${isDark
             ? "border-white/10 bg-gray-900 shadow-black/40"
             : "border-slate-200 bg-white shadow-slate-200/80"
-        }`}
+          }`}
       >
         <div className="mb-8 text-center">
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-blue-300">
@@ -87,9 +85,8 @@ function Login() {
             placeholder="Enter Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`rounded-lg border p-3 outline-none transition focus:border-blue-400 ${
-              isDark ? "border-white/10 bg-gray-800 text-white" : "border-slate-200 bg-slate-50 text-slate-950"
-            }`}
+            className={`rounded-lg border p-3 outline-none transition focus:border-blue-400 ${isDark ? "border-white/10 bg-gray-800 text-white" : "border-slate-200 bg-slate-50 text-slate-950"
+              }`}
             required
           />
 
@@ -98,9 +95,8 @@ function Login() {
             placeholder="Enter Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={`rounded-lg border p-3 outline-none transition focus:border-blue-400 ${
-              isDark ? "border-white/10 bg-gray-800 text-white" : "border-slate-200 bg-slate-50 text-slate-950"
-            }`}
+            className={`rounded-lg border p-3 outline-none transition focus:border-blue-400 ${isDark ? "border-white/10 bg-gray-800 text-white" : "border-slate-200 bg-slate-50 text-slate-950"
+              }`}
             required
           />
 

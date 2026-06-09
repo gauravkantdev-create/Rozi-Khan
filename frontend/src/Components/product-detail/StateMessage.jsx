@@ -1,19 +1,17 @@
 import { Link } from "react-router-dom";
+import { surfaceClass } from "../layout/PageShell";
 
 function StateMessage({ title, message, actionLabel = "Back to Products", actionTo = "/products", tone = "neutral" }) {
-  const toneClass =
-    tone === "error"
-      ? "border-red-500/25 bg-red-500/10 text-red-200"
-      : "border-white/10 bg-white/[0.04] text-gray-200";
+  const toneClass = tone === "error" ? "text-red-700" : "text-[#2F2F2F]";
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-5 py-12">
-      <div className={`max-w-md rounded-2xl border p-8 text-center shadow-2xl shadow-black/30 ${toneClass}`}>
-        <p className="text-2xl font-black text-white">{title}</p>
-        <p className="mt-3 leading-7 text-gray-300">{message}</p>
+      <div className={`${surfaceClass} max-w-md p-8 text-center`}>
+        <p className={`font-playfair text-3xl font-semibold ${toneClass}`}>{title}</p>
+        <p className="mt-3 font-raleway leading-7 text-[#757575]">{message}</p>
         <Link
           to={actionTo}
-          className="mt-6 inline-flex rounded-xl bg-white px-5 py-3 text-sm font-bold text-black transition hover:bg-blue-500 hover:text-white"
+          className="mt-6 inline-flex border border-[#2F2F2F] bg-[#2F2F2F] px-5 py-3 font-raleway text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-[#C5A992] hover:text-[#2F2F2F]"
         >
           {actionLabel}
         </Link>

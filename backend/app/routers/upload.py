@@ -3,7 +3,10 @@ import time
 # import shutil  # No longer needed for Cloudinary uploads
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Request, Response, status
 from app.middleware.auth import AuthorizeRoles
-from app.utils.cloudinary import upload_image_to_cloudinary
+try:
+    from app.utils.cloudinary import upload_image_to_cloudinary
+except Exception:
+    upload_image_to_cloudinary = None
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
@@ -45,7 +48,9 @@ async def upload_image(
     filepath = os.path.join(UPLOAD_DIR, filename)
     
     try:
-        # Upload image to Cloudinary
+        # Upload image to Cloudinary (if available)
+        if not upload_image_to_cloudinary:
+            raise HTTPException(status_code=503, detail="Image upload feature is unavailable in this environment. Install cloudinary package to enable it.")
         upload_result = upload_image_to_cloudinary(contents, filename)
         image_url = upload_result.get("secure_url")
         if not image_url:

@@ -4,6 +4,9 @@ from app.config import settings
 
 def send_otp_email(email: str, otp: str):
     if not settings.RESEND_API_KEY:
+        if settings.NODE_ENV == "development":
+            print(f"[DEV MODE] RESEND_API_KEY missing. OTP will not be emailed: {otp}")
+            return None
         raise HTTPException(
             status_code=500,
             detail="RESEND_API_KEY is missing. Add it in your environment variables."
@@ -43,6 +46,9 @@ def send_otp_email(email: str, otp: str):
         return result
     except Exception as e:
         print("[email] Resend API error:", str(e))
+        if settings.NODE_ENV == "development":
+            print(f"[DEV MODE] OTP email failed, but OTP is still valid in the DB: {otp}")
+            return None
         raise HTTPException(
             status_code=500,
             detail=f"Failed to send OTP email: {str(e)}"

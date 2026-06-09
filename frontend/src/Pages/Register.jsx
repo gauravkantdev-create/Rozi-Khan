@@ -30,9 +30,8 @@ function Register() {
   );
   const passwordValid = passwordStatus.every(([, passed]) => passed);
 
-  const inputClass = `rounded-lg border p-3 outline-none transition focus:border-emerald-400 ${
-    isDark ? "border-white/10 bg-gray-800 text-white" : "border-slate-200 bg-slate-50 text-slate-950"
-  }`;
+  const inputClass = `rounded-lg border p-3 outline-none transition focus:border-emerald-400 ${isDark ? "border-white/10 bg-gray-800 text-white" : "border-slate-200 bg-slate-50 text-slate-950"
+    }`;
 
   const handleSendOtp = async () => {
     setOtpLoading(true);
@@ -94,16 +93,14 @@ function Register() {
 
   return (
     <div
-      className={`flex min-h-screen items-center justify-center px-5 py-10 transition-colors duration-500 ${
-        isDark ? "bg-black" : "bg-[#f6f7fb]"
-      }`}
+      className={`flex min-h-screen items-center justify-center px-5 py-10 transition-colors duration-500 ${isDark ? "bg-black" : "bg-[#f6f7fb]"
+        }`}
     >
       <div
-        className={`w-[440px] max-w-full rounded-2xl border p-8 shadow-2xl sm:p-10 ${
-          isDark
+        className={`w-[440px] max-w-full rounded-2xl border p-8 shadow-2xl sm:p-10 ${isDark
             ? "border-white/10 bg-gray-900 shadow-black/40"
             : "border-slate-200 bg-white shadow-slate-200/80"
-        }`}
+          }`}
       >
         <div className="mb-8 text-center">
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-emerald-300">
@@ -119,11 +116,10 @@ function Register() {
 
         {message.text && (
           <div
-            className={`mb-5 rounded-lg border p-3 text-sm ${
-              message.type === "success"
+            className={`mb-5 rounded-lg border p-3 text-sm ${message.type === "success"
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
                 : "border-red-500/30 bg-red-500/10 text-red-200"
-            }`}
+              }`}
           >
             {message.text}
           </div>

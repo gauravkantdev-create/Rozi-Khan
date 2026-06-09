@@ -18,22 +18,10 @@ import ProtectedRoute from "./Components/routes/ProtectedRoute";
 import PublicOnlyRoute from "./Components/routes/PublicOnlyRoute";
 import AdminRoute from "./Components/routes/AdminRoute";
 
-import useThemeMode from "./hooks/useThemeMode";
-
 function App() {
-
-  const { isDark } = useThemeMode();
-
   return (
     <BrowserRouter>
-
-      <div
-        className={`min-h-screen font-sans transition-colors duration-500 ${
-          isDark
-            ? "bg-[#050505] text-white"
-            : "bg-[#f6f7fb] text-slate-950"
-        }`}
-      >
+      <div className="min-h-screen bg-[#F3F2EC] font-raleway text-[#2F2F2F]">
 
         {/* ========================================== */}
         {/* Navbar */}
@@ -148,7 +136,6 @@ function App() {
         </Routes>
 
       </div>
-
     </BrowserRouter>
   );
 }

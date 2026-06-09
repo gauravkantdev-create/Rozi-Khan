@@ -1,87 +1,75 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional
+from pydantic import BaseModel, constr
+from typing import Optional, List
 from datetime import datetime
-from decimal import Decimal
 
-class ReviewCreateRequest(BaseModel):
-    rating: int
-    comment: str
+class ProductVariantBase(BaseModel):
+    sku_code: constr(min_length=3, max_length=100)
+    wholesale_price: float
+    attributes: Optional[str] = None # JSON string e.g. {"color": "red"}
 
-class ReviewResponse(BaseModel):
-    id: str = Field(..., alias="_id")
-    user: str = Field(..., alias="user") # Mongo user id string
-    name: str
-    rating: int
-    comment: str
-    created_at: datetime = Field(..., alias="createdAt")
-    updated_at: datetime = Field(..., alias="updatedAt")
+class ProductVariantCreate(ProductVariantBase):
+    pass
 
-    class Config:
-        populate_by_name = True
-        from_attributes = True
-
-    @field_validator('user', mode='before')
-    @classmethod
-    def convert_user(cls, value):
-        if hasattr(value, 'id'):
-            return value.id
-        return str(value)
-
-
-class ProductCreateRequest(BaseModel):
-    name: str
-    description: str
-    price: float
-    category: str
-    images: Optional[List[str]] = []
-    stock: Optional[int] = 0
-    supplier: Optional[str] = None
-
-
-class ProductResponse(BaseModel):
-    id: str = Field(..., alias="_id")
-    name: str
-    description: str
-    price: Decimal
-    category: str
-    images: List[str]
-    stock: int
-    ratings: Decimal
-    reviews: List[ReviewResponse]
-    numReviews: int = Field(..., alias="num_reviews")
-    supplier: Optional[str] = None
-    createdBy: Optional[str] = Field(None, alias="created_by")
-    created_at: datetime = Field(..., alias="createdAt")
-    updated_at: datetime = Field(..., alias="updatedAt")
+class ProductVariantResponse(ProductVariantBase):
+    id: str
+    product_id: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
-        populate_by_name = True
         from_attributes = True
 
-    @field_validator('images', mode='before')
-    @classmethod
-    def convert_images(cls, value):
-        if not value:
-            return []
-        # If it's already a list of strings
-        if isinstance(value[0], str):
-            return value
-        # If it's a list of ProductImage SQLAlchemy objects
-        return [img.image_url for img in value]
+class ProductImageBase(BaseModel):
+    image_url: str
+    is_primary: bool = False
 
-    @field_validator('createdBy', mode='before')
-    @classmethod
-    def convert_created_by(cls, value):
-        if not value:
-            return None
-        if hasattr(value, 'id'):
-            return value.id
-        return str(value)
+class ProductImageCreate(ProductImageBase):
+    pass
 
+class ProductImageResponse(ProductImageBase):
+    id: str
+    product_id: str
+    created_at: datetime
 
-class ProductListResponse(BaseModel):
-    success: bool
-    page: int
-    pages: int
-    totalProducts: int
-    products: List[ProductResponse]
+    class Config:
+        from_attributes = True
+
+class ProductCatalogBase(BaseModel):
+    name: constr(min_length=2, max_length=255)
+    description: str
+    category: str
+    brand: Optional[str] = None
+
+class ProductCatalogCreate(ProductCatalogBase):
+    pass
+
+class ProductCatalogResponse(ProductCatalogBase):
+    id: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ProductBase(BaseModel):
+    catalog_id: str
+
+class ProductCreate(ProductBase):
+    pass
+
+class ProductUpdate(BaseModel):
+    status: Optional[str] = None
+
+class ProductResponse(ProductBase):
+    id: str
+    supplier_id: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    
+    catalog: Optional[ProductCatalogResponse] = None
+    variants: List[ProductVariantResponse] = []
+    images: List[ProductImageResponse] = []
+
+    class Config:
+        from_attributes = True

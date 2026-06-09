@@ -165,13 +165,12 @@ function OrderDetail() {
                         const complete = index <= currentStatusIndex;
                         return (
                           <div key={status} className="text-center">
-                            <div className={`mx-auto grid h-9 w-9 place-items-center rounded-full border-2 text-xs font-black ${
-                              complete
+                            <div className={`mx-auto grid h-9 w-9 place-items-center rounded-full border-2 text-xs font-black ${complete
                                 ? "border-emerald-500 bg-emerald-500 text-white"
                                 : isDark
                                   ? "border-white/20 bg-[#131921] text-gray-500"
                                   : "border-slate-300 bg-white text-slate-400"
-                            }`}>
+                              }`}>
                               {index + 1}
                             </div>
                             <p className={`mt-2 text-xs font-black ${complete ? "text-emerald-600" : isDark ? "text-gray-500" : "text-slate-500"}`}>
