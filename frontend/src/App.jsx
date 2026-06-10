@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Home from "./Pages/Home";
 import Login from "./Pages/Login";
@@ -18,10 +19,23 @@ import ProtectedRoute from "./Components/routes/ProtectedRoute";
 import PublicOnlyRoute from "./Components/routes/PublicOnlyRoute";
 import AdminRoute from "./Components/routes/AdminRoute";
 
+function HashScroll() {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) return;
+    const element = document.getElementById(hash.slice(1));
+    if (element) element.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [hash]);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-[#F3F2EC] font-raleway text-[#2F2F2F]">
+      <HashScroll />
+      <div className="min-h-screen bg-[var(--page)] font-raleway text-[var(--text)] transition-colors duration-300">
 
         {/* ========================================== */}
         {/* Navbar */}

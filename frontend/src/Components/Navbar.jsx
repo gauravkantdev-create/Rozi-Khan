@@ -5,12 +5,31 @@ import useAuth from "../hooks/useAuth";
 import useCart from "../hooks/useCart";
 import useThemeMode from "../hooks/useThemeMode";
 
+const menuGroups = {
+  "Platform tour": ["Product sourcing", "Order processing", "Post-sale support", "eCommerce tools", "Customer support"],
+  Dropship: ["Home", "Garden", "Health & beauty", "Fashion & lifestyle", "Automotive", "Packaging"],
+  Integrations: ["TikTok Shop", "Shopify", "eBay", "WooCommerce", "Amazon", "Avasam AI"],
+  Resources: ["Help center", "FAQs", "Hot products", "Blog", "Press", "Free tools"],
+  Supplier: ["Supplier programme", "Approval flow", "Retailer trust", "Dashboard access"],
+};
+
 function Navbar() {
   const navigate = useNavigate();
   const { isAuthenticated: loggedIn, isAdmin, logout } = useAuth();
   const { count: cartCount } = useCart();
-  const { toggleTheme } = useThemeMode();
+  const { isDark, toggleTheme } = useThemeMode();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState("");
+
+  const marketingTabs = [
+    { label: "Platform tour", to: "/#platform-tour" },
+    { label: "Dropship", to: "/#dropship" },
+    { label: "Integrations", to: "/#integrations" },
+    { label: "Pricing", to: "/#pricing" },
+    { label: "Resources", to: "/#resources" },
+    { label: "Enterprise", to: "/#enterprise" },
+    { label: "Supplier", to: isAdmin ? "/dashboard" : "/register" },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -20,77 +39,87 @@ function Navbar() {
 
   const closeMobileMenu = () => setMobileOpen(false);
 
-  const navLinkClass = ({ isActive }) =>
-    `font-raleway text-xs font-bold uppercase tracking-[0.18em] transition duration-300 ${
-      isActive ? "text-[#2F2F2F]" : "text-[#757575] hover:text-[#2F2F2F]"
-    }`;
-
   return (
-    <header className="sticky top-0 z-50 border-b border-[#d8c8ba] bg-[#F3F2EC]/92 backdrop-blur-xl">
-      <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-4 sm:px-6 lg:px-10">
-        <Link to="/" onClick={closeMobileMenu} className="group flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center border border-[#C5A992] bg-[#fffdf8] transition duration-300 group-hover:-translate-y-0.5">
-            <img src={logo} alt="RoziKhan" className="h-9 w-9 object-contain" />
-          </span>
-          <span>
-            <span className="block font-prata text-2xl leading-none text-[#2F2F2F]">RoziKhan</span>
-            <span className="hidden font-raleway text-[10px] font-bold uppercase tracking-[0.28em] text-[#C5A992] sm:block">
-              Premium dropship
-            </span>
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/95 text-[var(--text)] backdrop-blur-xl transition-colors duration-300">
+      <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10">
+        <Link to="/" onClick={closeMobileMenu} className="flex flex-shrink-0 items-center gap-2">
+          <span className="font-playfair text-2xl font-bold tracking-tight text-[var(--text)]">
+            RoziKha<span className="italic font-serif text-[var(--brand)] font-normal">n</span>
           </span>
         </Link>
 
-        <nav className="hidden justify-center lg:flex">
-          <div className="flex items-center gap-8">
-            <NavLink to="/" className={navLinkClass}>Home</NavLink>
-            <NavLink to="/products" className={navLinkClass}>Products</NavLink>
-            {loggedIn && <NavLink to="/orders" className={navLinkClass}>Orders</NavLink>}
-            {isAdmin && <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>}
+        <nav className="hidden flex-1 justify-center lg:flex">
+          <div className="flex items-center gap-5 xl:gap-8">
+            {marketingTabs.map((item) => {
+              const hasMenu = Boolean(menuGroups[item.label]);
+              return (
+                <div
+                  key={item.label}
+                  className="relative"
+                  onMouseEnter={() => setActiveMenu(hasMenu ? item.label : "")}
+                  onMouseLeave={() => setActiveMenu("")}
+                >
+                  <Link
+                    to={item.to}
+                    className="inline-flex items-center gap-1 whitespace-nowrap text-[13px] font-semibold tracking-wide text-[var(--muted)] transition duration-150 hover:text-[var(--text)]"
+                  >
+                    {item.label}
+                    {hasMenu && <span className="text-[8px] opacity-60 transition-transform duration-200">▼</span>}
+                  </Link>
+                  {activeMenu === item.label && (
+                    <div className="absolute left-1/2 top-full mt-1 w-64 -translate-x-1/2 animate-rise-in rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-[var(--shadow)]">
+                      <div className="flex flex-col">
+                        {menuGroups[item.label].map((entry) => (
+                          <Link 
+                            key={entry} 
+                            to={item.to} 
+                            className="flex items-center rounded-lg px-4 py-2.5 text-[13px] font-semibold text-[var(--muted)] transition duration-200 hover:bg-[var(--surface-soft)] hover:text-[var(--brand)]"
+                          >
+                            {entry}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {loggedIn && <NavLink to="/orders" className="text-[13px] font-semibold tracking-wide text-[var(--muted)] hover:text-[var(--text)]">Orders</NavLink>}
+            {isAdmin && <NavLink to="/dashboard" className="text-[13px] font-semibold tracking-wide text-[var(--muted)] hover:text-[var(--text)]">Dashboard</NavLink>}
           </div>
         </nav>
 
-        <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <div className="flex items-center justify-end gap-3 sm:gap-4">
           <button
             type="button"
             onClick={toggleTheme}
-            className="hidden h-10 w-10 place-items-center border border-[#d8c8ba] bg-[#fffdf8] text-[#2F2F2F] transition duration-300 hover:-translate-y-0.5 hover:border-[#C5A992] sm:grid"
-            aria-label="Refresh store theme"
+            className="hidden h-9 w-9 place-items-center rounded-md border border-[var(--border)] bg-[var(--surface-soft)] text-sm text-[var(--text)] transition duration-150 hover:bg-[var(--border)] sm:grid"
+            aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
           >
-            <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+            {isDark ? "☀️" : "🌙"}
           </button>
 
           {loggedIn ? (
             <>
-              <Link
-                to="/cart"
-                className="relative border border-[#2F2F2F] bg-[#2F2F2F] px-4 py-2.5 font-raleway text-xs font-bold uppercase tracking-[0.18em] text-white transition duration-300 hover:bg-[#C5A992] hover:text-[#2F2F2F]"
-              >
+              <Link to="/cart" className="relative rounded-none bg-[var(--text)] px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--surface)] transition duration-150 hover:opacity-90">
                 Cart
                 {cartCount > 0 && (
-                  <span className="absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#C5A992] px-1 text-[11px] text-[#2F2F2F]">
+                  <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-[var(--brand)] px-1 text-[10px] font-extrabold text-white shadow-md">
                     {cartCount}
                   </span>
                 )}
               </Link>
-              <button
-                onClick={handleLogout}
-                className="hidden border border-[#d8c8ba] px-4 py-2.5 font-raleway text-xs font-bold uppercase tracking-[0.18em] text-[#757575] transition hover:border-[#C5A992] hover:text-[#2F2F2F] sm:inline-flex"
-              >
+              <button onClick={handleLogout} className="hidden text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--muted)] hover:text-[var(--text)] sm:inline-flex transition duration-155">
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="font-raleway text-xs font-bold uppercase tracking-[0.18em] text-[#757575] transition hover:text-[#2F2F2F]">
+              <Link to="/login" className="hidden text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--muted)] hover:text-[var(--text)] sm:inline-flex transition duration-155">
                 Login
               </Link>
-              <Link
-                to="/register"
-                className="border border-[#2F2F2F] bg-[#2F2F2F] px-4 py-2.5 font-raleway text-xs font-bold uppercase tracking-[0.18em] text-white transition duration-300 hover:bg-[#C5A992] hover:text-[#2F2F2F]"
-              >
-                Register
+              <Link to="/register" className="rounded-none bg-[var(--text)] px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--surface)] transition duration-150 hover:opacity-90">
+                Free trial
               </Link>
             </>
           )}
@@ -98,39 +127,39 @@ function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen((open) => !open)}
-            className="grid h-10 w-10 place-items-center border border-[#d8c8ba] bg-[#fffdf8] text-[#2F2F2F] lg:hidden"
+            className="grid h-9 w-9 place-items-center rounded-md border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text)] lg:hidden"
             aria-label="Toggle mobile menu"
           >
-            {mobileOpen ? (
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M4 6h12M4 10h12M4 14h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-            )}
+            {mobileOpen ? "✕" : "☰"}
           </button>
         </div>
       </div>
 
       {mobileOpen && (
-        <div className="mx-auto max-w-7xl border-t border-[#d8c8ba] px-4 py-4 sm:px-6 lg:hidden">
-          <div className="grid gap-4 bg-[#fffdf8]/80 p-4">
-            <NavLink to="/" onClick={closeMobileMenu} className={navLinkClass}>Home</NavLink>
-            <NavLink to="/products" onClick={closeMobileMenu} className={navLinkClass}>Products</NavLink>
+        <div className="border-t border-[var(--border)] px-4 py-4 lg:hidden">
+          <div className="mx-auto grid max-w-7xl gap-3 rounded-lg bg-[var(--surface-soft)] p-4">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex items-center justify-between rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left text-sm font-extrabold"
+            >
+              Theme
+              <span className="text-[var(--brand)]">{isDark ? "Night" : "Day"}</span>
+            </button>
+            {marketingTabs.map((item) => (
+              <Link key={item.label} to={item.to} onClick={closeMobileMenu} className="rounded-md px-3 py-2 text-sm font-extrabold text-[var(--text)] hover:bg-[var(--surface)]">
+                {item.label}
+              </Link>
+            ))}
+            {!loggedIn && <NavLink to="/login" onClick={closeMobileMenu} className="rounded-md px-3 py-2 text-sm font-extrabold">Login</NavLink>}
             {loggedIn && (
               <>
-                <NavLink to="/cart" onClick={closeMobileMenu} className={navLinkClass}>Cart ({cartCount})</NavLink>
-                <NavLink to="/orders" onClick={closeMobileMenu} className={navLinkClass}>Orders</NavLink>
+                <NavLink to="/cart" onClick={closeMobileMenu} className="rounded-md px-3 py-2 text-sm font-extrabold">Cart ({cartCount})</NavLink>
+                <NavLink to="/orders" onClick={closeMobileMenu} className="rounded-md px-3 py-2 text-sm font-extrabold">Orders</NavLink>
               </>
             )}
-            {isAdmin && <NavLink to="/dashboard" onClick={closeMobileMenu} className={navLinkClass}>Dashboard</NavLink>}
-            {loggedIn && (
-              <button onClick={handleLogout} className="text-left font-raleway text-xs font-bold uppercase tracking-[0.18em] text-[#757575]">
-                Logout
-              </button>
-            )}
+            {isAdmin && <NavLink to="/dashboard" onClick={closeMobileMenu} className="rounded-md px-3 py-2 text-sm font-extrabold">Dashboard</NavLink>}
+            {loggedIn && <button onClick={handleLogout} className="rounded-md px-3 py-2 text-left text-sm font-extrabold">Logout</button>}
           </div>
         </div>
       )}

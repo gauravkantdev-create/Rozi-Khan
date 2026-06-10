@@ -38,6 +38,10 @@ def flatten_product(p: Product, db: Session):
         "stock": stock,
         "supplier": supplier.company_name if supplier else "Unknown Supplier",
         "images": image_urls,
+        "ratings": 0,
+        "numReviews": 0,
+        "addedByRole": supplier.user.role if supplier and supplier.user else None,
+        "adminAdded": bool(supplier and supplier.user and supplier.user.role == "admin"),
         "createdAt": p.created_at.isoformat() if p.created_at else None,
     }
 

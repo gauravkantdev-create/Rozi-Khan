@@ -1,12 +1,51 @@
 const AUTH_TOKEN_KEY = "token";
 const AUTH_USER_KEY = "rozikhan_user";
 const AUTH_CHANGE_EVENT = "rozikhan-auth-change";
+const fallbackStorage = { token: null, user: null };
 
-const canUseStorage = () => typeof window !== "undefined" && window.localStorage;
+const canUseStorage = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    const testKey = "__rozikhan_storage_test";
+    window.localStorage.setItem(testKey, testKey);
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const safeGetItem = (key) => {
+  if (!canUseStorage()) return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeSetItem = (key, value) => {
+  if (!canUseStorage()) return false;
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const safeRemoveItem = (key) => {
+  if (!canUseStorage()) return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+};
 
 export const getAuthToken = () => {
-  if (!canUseStorage()) return null;
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  const storedToken = safeGetItem(AUTH_TOKEN_KEY);
+  return storedToken || fallbackStorage.token;
 };
 
 export const decodeJwtPayload = (token) => {
@@ -39,10 +78,13 @@ export const isTokenExpired = (token) => {
 };
 
 export const getAuthUser = () => {
-  if (!canUseStorage()) return null;
+  const storedUser = safeGetItem(AUTH_USER_KEY);
+  if (!storedUser && !canUseStorage()) {
+    return fallbackStorage.user;
+  }
 
   try {
-    const savedUser = JSON.parse(localStorage.getItem(AUTH_USER_KEY) || "null");
+    const savedUser = JSON.parse(storedUser || "null");
     const tokenPayload = decodeJwtPayload(getAuthToken());
 
     if (!savedUser && tokenPayload) {
@@ -59,7 +101,7 @@ export const getAuthUser = () => {
         }
       : null;
   } catch {
-    return null;
+    return fallbackStorage.user;
   }
 };
 
@@ -91,14 +133,11 @@ export const isAuthenticated = () => getAuthSession().isAuthenticated;
 export const isAdminUser = () => getAuthSession().isAdmin;
 
 export const persistAuthSession = ({ token, user }) => {
-  if (!canUseStorage()) return getAuthSession();
-
   if (!token) {
     clearAuthToken();
     return getAuthSession();
   }
 
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
   const tokenPayload = decodeJwtPayload(token);
   const role = user?.role || user?.user?.role || tokenPayload?.role || "user";
   const normalizedUser = {
@@ -107,7 +146,14 @@ export const persistAuthSession = ({ token, user }) => {
     role,
   };
 
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(normalizedUser));
+  if (!safeSetItem(AUTH_TOKEN_KEY, token)) {
+    fallbackStorage.token = token;
+  }
+
+  if (!safeSetItem(AUTH_USER_KEY, JSON.stringify(normalizedUser))) {
+    fallbackStorage.user = normalizedUser;
+  }
+
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 
   return getAuthSession();
@@ -118,10 +164,10 @@ export const setAuthToken = (token, user = null) => {
 };
 
 export const clearAuthToken = () => {
-  if (!canUseStorage()) return;
-
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(AUTH_USER_KEY);
+  safeRemoveItem(AUTH_TOKEN_KEY);
+  safeRemoveItem(AUTH_USER_KEY);
+  fallbackStorage.token = null;
+  fallbackStorage.user = null;
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 };
 

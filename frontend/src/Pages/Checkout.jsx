@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createOrder } from "../Services/orderService";
 import { createRazorpayOrder, verifyPayment } from "../Services/paymentService";
@@ -32,12 +32,10 @@ function Checkout() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [orderError, setOrderError] = useState("");
-
-  useEffect(() => {
+  const [orderError, setOrderError] = useState(() => {
     const token = getAuthToken();
-    if (token && isTokenExpired(token)) setOrderError("Your session has expired. Please refresh and login again.");
-  }, []);
+    return token && isTokenExpired(token) ? "Your session has expired. Please refresh and login again." : "";
+  });
 
   const totals = useMemo(() => getCartTotals(cartItems), [cartItems]);
 

@@ -75,7 +75,7 @@ function Products() {
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-                <div key={item} className="h-[460px] animate-pulse border border-[#d8c8ba] bg-[#fffdf8]/70" />
+                <div key={item} className="h-[460px] animate-pulse border border-[var(--border)] bg-[var(--surface-soft)]" />
               ))}
             </div>
           ) : error ? (
