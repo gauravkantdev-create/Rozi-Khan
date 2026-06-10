@@ -110,46 +110,7 @@ function Footer() {
   ];
 
   return (
-    <footer className="relative bg-[var(--surface)] border-t border-[var(--border)]/50 pt-20 pb-8 transition-colors duration-300">
-      {/* Overlay Newsletter Card */}
-      <div className="absolute top-0 left-1/2 z-10 w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 px-4">
-        <div className="rounded-[1.5rem] bg-blue-600 dark:bg-blue-700 p-6 md:p-8 lg:py-8 lg:px-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Left illustration */}
-          <div className="hidden md:flex w-1/3 items-center justify-center">
-            {/* Elegant 3D-styled E-commerce Shopping Bag representation */}
-            <svg className="h-28 w-28 text-blue-200 fill-current opacity-90 animate-soft-float" viewBox="0 0 24 24">
-              <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12zm-7-8c-1.66 0-3-1.34-3-3a1 1 0 1 1 2 0c0 .55.45 1 1 1s1-.45 1-1a1 1 0 1 1 2 0c0 1.66-1.34 3-3 3z" />
-            </svg>
-          </div>
-          {/* Right form and text */}
-          <div className="flex-1 text-left">
-            <h3 className="font-playfair text-xl font-bold tracking-tight md:text-2xl leading-tight">Subscribe to our newsletter to get updates to our latest collections</h3>
-            <p className="mt-2 text-sm text-blue-100">Get 20% off on your first order just by subscribing to our newsletter</p>
-            
-            <form onSubmit={(e) => { e.preventDefault(); alert("Successfully subscribed to newsletter!"); }} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md">
-              <div className="relative flex-1">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-blue-200 text-sm">✉</span>
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="w-full rounded-full border border-blue-400 bg-blue-500/20 py-2.5 pl-9 pr-4 text-sm font-semibold text-white placeholder:text-blue-200 outline-none focus:border-white focus:ring-2 focus:ring-white/30 transition"
-                  required
-                />
-              </div>
-              <button 
-                type="submit"
-                className="rounded-full bg-white px-6 py-2 text-sm font-bold text-blue-600 shadow transition duration-200 hover:bg-blue-50 hover:scale-[1.03]"
-              >
-                Subscribe
-              </button>
-            </form>
-            <p className="mt-3 text-xs text-blue-200">
-              You will be able to unsubscribe at any time. Read our privacy policy <Link to="/" className="underline hover:text-white">here</Link>.
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <footer className="bg-[var(--surface)] border-t border-[var(--border)]/50 py-8 transition-colors duration-300">
       {/* Main Footer Content */}
       <Container className="grid gap-10 py-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.25fr] pt-16 border-b border-[var(--border)]/50">
         {/* Branding column */}
