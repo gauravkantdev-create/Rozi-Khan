@@ -6,6 +6,42 @@ import { Container, Eyebrow, PageShell, PrimaryLink, SecondaryLink, SectionHeadi
 import { getProducts } from "../Services/productService";
 import useAuthStatus from "../hooks/useAuthStatus";
 
+// Animated text component for letter-by-letter reveal
+function AnimatedText({ text, className = "", delay = 0 }) {
+  const [visible, setVisible] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 200 + delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  const words = text.split(" ");
+
+  return (
+    <span className={className}>
+      {words.map((word, wordIndex) => (
+        <span key={wordIndex} className="inline-block mr-3 last:mr-0">
+          {word.split("").map((letter, letterIndex) => (
+            <span
+              key={letterIndex}
+              className={`
+                inline-block opacity-0 translate-y-4
+                transition-all duration-500 ease-out
+                ${visible ? "opacity-100 translate-y-0" : ""}
+              `}
+              style={{
+                transitionDelay: `${delay + (wordIndex * word.length + letterIndex) * 30}ms`,
+              }}
+            >
+              {letter}
+            </span>
+          ))}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 import heartIcon from "../assets/feature_heart.png";
 import locationIcon from "../assets/feature_location.png";
 import phoneIcon from "../assets/feature_phone.png";
@@ -56,7 +92,7 @@ const storeNeeds = [
   ["03", "Automation-ready orders", "Move orders, payments and shipping updates through a cleaner seller workflow."],
   ["04", "Live inventory signals", "Keep stock visibility central so sellers can act before products go out of sync."],
   ["05", "Product data exports", "Prepare structured catalog information for faster listing, pricing and merchandising."],
-  ["06", "Growth support", "Use guided sections, support touchpoints and marketplace context to scale with confidence."],
+  ["06", "Growth support", "Use guided sections, support touchpoints and marketplace context to grow with confidence."],
 ];
 
 const platformReasons = [
@@ -70,8 +106,9 @@ function Home() {
   const getStartedPath = loggedIn ? "/products" : "/register";
   const [previewProducts, setPreviewProducts] = useState([]);
   const [previewLoading, setPreviewLoading] = useState(true);
-  const [previewError, setPreviewError] = useState("");
   const [isYearly, setIsYearly] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const maxSlide = pricingPlans.length - 2;
 
   useEffect(() => {
     let active = true;
@@ -79,15 +116,17 @@ function Home() {
     async function loadPreviewProducts() {
       try {
         setPreviewLoading(true);
-        setPreviewError("");
         const { data } = await getProducts();
         if (active && data.success) {
           setPreviewProducts(Array.isArray(data.products) ? data.products : []);
         }
       } catch (err) {
-        if (active) setPreviewError(err.response?.data?.message || err.message || "Unable to load product previews.");
+        console.error("Failed to load preview products:", err);
+        setPreviewProducts([]);
       } finally {
-        if (active) setPreviewLoading(false);
+        if (active) {
+          setPreviewLoading(false);
+        }
       }
     }
 
@@ -118,16 +157,18 @@ function Home() {
   return (
     <PageShell>
       <section className="relative overflow-hidden bg-[var(--page)]">
-        <Container className="grid min-h-[720px] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
+        <Container className="grid min-h-[600px] items-center gap-10 py-12 lg:grid-cols-[0.95fr_1.05fr] lg:py-16">
           <div className="relative z-10">
-            <div className="flex items-center gap-4">
-              <span className="h-px w-9 bg-[var(--brand)]" />
-              <Eyebrow className="tracking-[0.3em]">Dropshipping marketplace</Eyebrow>
-            </div>
-            <h1 className="mt-9 max-w-4xl font-prata text-5xl leading-[1.05] text-[var(--text)] sm:text-6xl lg:text-7xl xl:text-8xl">
-              Minimal by Design. <span className="text-[var(--brand)]">Powerful</span> by Nature.
+            <h1 className="mt-6 max-w-4xl font-playfair text-4xl font-medium leading-[1.05] text-[var(--text)] sm:text-5xl lg:text-6xl xl:text-7xl">
+              <AnimatedText text="Supercharge Your" delay={0} />
+              <span className="block mt-2 text-[var(--brand)]">
+                <AnimatedText text="Dropshipping" delay={500} />
+              </span>
+              <span className="block mt-2">
+                <AnimatedText text="Business." delay={1000} />
+              </span>
             </h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-[var(--muted)]">
+            <p className="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--muted)] opacity-0 animate-fade-in" style={{ animationDelay: "1.5s", animationFillMode: "forwards" }}>
               A clean, versatile dropshipping platform built for modern sellers who want trusted products, smooth integrations, and automated order flow.
             </p>
             <div className="mt-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
@@ -216,23 +257,18 @@ function Home() {
                   <div key={item} className="h-[460px] animate-pulse border border-[var(--border)] bg-[var(--surface-soft)]" />
                 ))}
               </div>
-            ) : previewError ? (
-              <div className={`${surfaceClass} p-10 text-center`}>
-                <h3 className="font-playfair text-3xl font-semibold">Product previews unavailable</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{previewError}</p>
-              </div>
-            ) : premiumAdminProducts.length === 0 ? (
-              <div className={`${surfaceClass} p-10 text-center`}>
-                <h3 className="font-playfair text-3xl font-semibold">No premium admin products yet</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Add products from the admin flow and they will appear here automatically.</p>
-              </div>
-            ) : (
+            ) : premiumAdminProducts.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {premiumAdminProducts.map((product, index) => (
+                {premiumAdminProducts.slice(0, 6).map((product, index) => (
                   <div key={product._id || product.id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms` }}>
                     <ProductCard product={product} />
                   </div>
                 ))}
+              </div>
+            ) : (
+              <div className={`${surfaceClass} p-10 text-center`}>
+                <h3 className="font-playfair text-3xl font-semibold">No premium admin products yet</h3>
+                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Add products from the admin flow and they will appear here automatically.</p>
               </div>
             )}
           </div>
@@ -334,34 +370,123 @@ function Home() {
               Yearly
             </button>
           </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-            {pricingPlans.map(([title, priceMonthly, priceYearly, copy, features]) => {
-              const price = isYearly ? priceYearly : priceMonthly;
-              return (
-                <div key={title} className={`${surfaceClass} overflow-hidden rounded-lg border border-[var(--border)] hover:border-[var(--brand)] transition duration-200 shadow-sm`}>
-                  <div className={`${title === "Business" ? "brand-gradient" : "bg-[var(--brand)]"} p-7 text-center text-white`}>
-                    {title === "Business" && <span className="mb-3 inline-flex rounded-md bg-white px-5 py-1 text-sm text-[var(--brand-dark)] font-bold">Preferred</span>}
-                    <h3 className="text-3xl font-extrabold">{title}</h3>
-                    <p className="mt-6 text-4xl font-extrabold">{price}</p>
-                    <p className="mt-2 text-sm font-semibold">+ VAT per month{isYearly ? " (billed yearly)" : ""}</p>
-                  </div>
-                  <div className="p-6">
-                    <Link to="/register" className="mb-5 flex justify-center rounded-md border border-[var(--brand)] px-4 py-3 text-center text-sm font-extrabold text-[var(--brand)] hover:bg-[var(--brand)] hover:text-white transition duration-200">
-                      Let's begin selling
-                    </Link>
-                    <p className="min-h-14 text-sm leading-7 text-[var(--muted)]">{copy}</p>
-                    <ul className="mt-5 space-y-3">
-                      {features.map((feature) => (
-                        <li key={feature} className="flex gap-2 text-sm font-semibold text-[var(--muted)]">
-                          <span className="text-[var(--brand-dark)]">✓</span>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-10 relative">
+            {/* Slider container */}
+            <div className="overflow-hidden">
+              <div 
+                className="flex gap-6 transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentSlide * 52}%)` }}
+              >
+                {pricingPlans.map(([title, priceMonthly, priceYearly, copy, features], index) => {
+                  const price = isYearly ? priceYearly : priceMonthly;
+                  const isPopular = title === "Business";
+                  return (
+                    <div key={title} className="flex-shrink-0 w-1/2">
+                      <Link
+                        to="/register"
+                        className={`
+                          flex flex-col gap-4 
+                          p-5 rounded-2xl cursor-pointer block h-full
+                          ${isPopular 
+                            ? "border-2 border-[var(--brand)] shadow-2xl bg-[var(--surface-soft)] relative overflow-hidden" 
+                            : "border border-[var(--border)] bg-[var(--surface)] shadow-md"
+                          } 
+                          transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[var(--brand)]
+                        `}
+                      >
+                        {/* Popular badge with accent background */}
+                        {isPopular && (
+                          <div className="absolute -right-7 top-5 rotate-45 bg-[var(--brand)] px-8 py-1 text-xs font-extrabold uppercase tracking-widest text-white shadow-lg">
+                            Popular
+                          </div>
+                        )}
+                        
+                        <div>
+                          <h3 className="text-xl font-bold text-[var(--text)]">{title}</h3>
+                        </div>
+                        
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-5xl font-extrabold text-[var(--text)]">{price}</span>
+                          <span className="text-base text-[var(--muted)]">/ month</span>
+                        </div>
+
+                        <p className="text-base text-[var(--muted)] leading-relaxed">{copy}</p>
+
+                        <ul className="flex-1 space-y-3 pt-1">
+                          {features.map((feature) => (
+                            <li key={feature} className="flex items-center gap-2 text-base text-[var(--text)]">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--surface-soft)] text-[var(--brand)] font-bold text-xs">✓</span>
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <div
+                          className={`
+                            w-full rounded-xl px-6 py-3 text-center text-base font-bold transition-all
+                            ${isPopular 
+                              ? "bg-[var(--brand)] text-white hover:opacity-90 shadow-lg" 
+                              : "border-2 border-[var(--text)] text-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--surface)]"
+                            }
+                          `}
+                        >
+                          Get started
+                        </div>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Navigation arrows */}
+            <button
+              onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
+              disabled={currentSlide === 0}
+              className={`
+                absolute -left-4 top-1/2 -translate-y-1/2
+                w-12 h-12 rounded-full
+                flex items-center justify-center
+                bg-[var(--surface)] border border-[var(--border)]
+                shadow-lg text-[var(--text)]
+                transition-all duration-300
+                hover:bg-[var(--surface-soft)]
+                disabled:opacity-50 disabled:cursor-not-allowed
+              `}
+            >
+              ←
+            </button>
+
+            <button
+              onClick={() => setCurrentSlide(prev => Math.min(maxSlide, prev + 1))}
+              disabled={currentSlide === maxSlide}
+              className={`
+                absolute -right-4 top-1/2 -translate-y-1/2
+                w-12 h-12 rounded-full
+                flex items-center justify-center
+                bg-[var(--surface)] border border-[var(--border)]
+                shadow-lg text-[var(--text)]
+                transition-all duration-300
+                hover:bg-[var(--surface-soft)]
+                disabled:opacity-50 disabled:cursor-not-allowed
+              `}
+            >
+              →
+            </button>
+
+            {/* Dots indicator */}
+            <div className="flex justify-center gap-2 mt-8">
+              {Array.from({ length: maxSlide + 1 }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`
+                    w-3 h-3 rounded-full transition-all duration-300
+                    ${currentSlide === index ? "bg-[var(--brand)] w-8" : "bg-[var(--border)]"}
+                  `}
+                />
+              ))}
+            </div>
           </div>
         </Container>
       </section>

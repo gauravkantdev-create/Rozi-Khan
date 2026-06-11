@@ -32,4 +32,4 @@ class InventoryLedger(Base):
 
     # Relationships
     supplier = relationship("Supplier", lazy="select")
-    variant = relationship("ProductVariant", lazy="select")
+    variant = relationship("ProductVariant", back_populates="ledger", lazy="select")

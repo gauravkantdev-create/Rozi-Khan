@@ -6,14 +6,12 @@ import { Container, GhostButton, PageShell, SectionHeading, inputClass, surfaceC
 function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
       const params = {};
       if (keyword) params.keyword = keyword;
       if (category) params.category = category;
@@ -21,12 +19,11 @@ function Products() {
       const { data } = await API.get("/products", { params });
 
       if (data.success) {
-        setProducts(data.products);
-      } else {
-        setError("Failed to fetch products.");
+        setProducts(Array.isArray(data.products) ? data.products : []);
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "An error occurred");
+      console.error("Failed to fetch products:", err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -78,24 +75,18 @@ function Products() {
                 <div key={item} className="h-[460px] animate-pulse border border-[var(--border)] bg-[var(--surface-soft)]" />
               ))}
             </div>
-          ) : error ? (
-            <div className={`${surfaceClass} p-10 text-center`}>
-              <h2 className="font-playfair text-3xl font-semibold text-red-700">Catalog unavailable</h2>
-              <p className="mt-3 font-raleway text-[#757575]">{error}</p>
-              <GhostButton onClick={fetchProducts} className="mt-6">Try again</GhostButton>
-            </div>
-          ) : products.length === 0 ? (
-            <div className={`${surfaceClass} p-12 text-center`}>
-              <h2 className="font-playfair text-3xl font-semibold">No products found</h2>
-              <p className="mt-3 font-raleway text-[#757575]">Try a different keyword or category.</p>
-            </div>
-          ) : (
+          ) : products.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {products.map((product, index) => (
                 <div key={product._id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms` }}>
                   <ProductCard product={product} />
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className={`${surfaceClass} p-10 text-center`}>
+              <h3 className="font-playfair text-3xl font-semibold">No products found</h3>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Try a different search term or check back later for new products.</p>
             </div>
           )}
         </div>
