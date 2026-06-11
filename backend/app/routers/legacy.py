@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.database import get_db
-from app.middleware.auth import get_current_user, AuthorizeRoles
+from app.middleware.auth import get_current_user, AuthorizeRoles, get_current_user_optional
 from app.models.user import User
 from app.models.supplier import Supplier
 from app.models.product import Product, ProductCatalog, ProductVariant, ProductImage
@@ -13,21 +13,18 @@ import uuid
 
 router = APIRouter(tags=["Legacy Compatibility API"])
 
-def flatten_product(p: Product, db: Session):
-    # Fetch related data to mimic MongoDB structure
-    catalog = db.query(ProductCatalog).filter(ProductCatalog.id == p.catalog_id).first()
-    supplier = db.query(Supplier).filter(Supplier.id == p.supplier_id).first()
-    variant = db.query(ProductVariant).filter(ProductVariant.product_id == p.id).first()
+def flatten_product(p: Product):
+    # We already have all related data from joinedload
+    catalog = p.catalog
+    supplier = p.supplier
+    variant = p.variants[0] if p.variants else None
     
     price = float(variant.wholesale_price) if variant else 0.0
     stock = 0
-    if variant:
-        ledger = db.query(InventoryLedger).filter(InventoryLedger.variant_id == variant.id).first()
-        if ledger:
-            stock = ledger.quantity_available
+    if variant and variant.ledger:
+        stock = variant.ledger.quantity_available
             
-    images = db.query(ProductImage).filter(ProductImage.product_id == p.id).all()
-    image_urls = [img.image_url for img in images]
+    image_urls = [img.image_url for img in p.images] if p.images else []
 
     return {
         "_id": p.id,
@@ -48,32 +45,42 @@ def flatten_product(p: Product, db: Session):
 @router.get("/products")
 def legacy_get_products(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User | None = Depends(get_current_user_optional)
 ):
+    # Pre-fetch all related data in one query
+    query = db.query(Product).options(
+        joinedload(Product.catalog),
+        joinedload(Product.supplier).joinedload(Supplier.user),
+        joinedload(Product.variants).joinedload(ProductVariant.ledger),
+        joinedload(Product.images)
+    )
+
     # Returns all products or supplier products depending on auth
-    if current_user.role == "admin":
-        # Admins see ALL products
-        products = db.query(Product).all()
-    elif current_user.role == "supplier":
-        # Suppliers see only their own products
+    if current_user and current_user.role == "admin":
+        products = query.all()
+    elif current_user and current_user.role == "supplier":
         supplier = db.query(Supplier).filter(Supplier.user_id == current_user.id).first()
         if supplier:
-            products = db.query(Product).filter(Product.supplier_id == supplier.id).all()
+            products = query.filter(Product.supplier_id == supplier.id).all()
         else:
             products = []
     else:
-        # Retailers and others see active products
-        products = db.query(Product).filter(Product.status == "ACTIVE").all()
+        products = query.filter(Product.status == "ACTIVE").all()
     
-    flat_products = [flatten_product(p, db) for p in products]
+    flat_products = [flatten_product(p) for p in products]
     return {"success": True, "products": flat_products}
 
 @router.get("/products/{product_id}")
 def legacy_get_product_by_id(product_id: str, db: Session = Depends(get_db)):
-    p = db.query(Product).filter(Product.id == product_id).first()
+    p = db.query(Product).options(
+        joinedload(Product.catalog),
+        joinedload(Product.supplier).joinedload(Supplier.user),
+        joinedload(Product.variants).joinedload(ProductVariant.ledger),
+        joinedload(Product.images)
+    ).filter(Product.id == product_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Product not found")
-    return {"success": True, "product": flatten_product(p, db)}
+    return {"success": True, "product": flatten_product(p)}
 
 @router.post("/products")
 def legacy_create_product(

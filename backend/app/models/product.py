@@ -61,8 +61,9 @@ class ProductVariant(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    # Relationship
+    # Relationships
     product = relationship("Product", back_populates="variants")
+    ledger = relationship("InventoryLedger", back_populates="variant", uselist=False)
 
 
 class ProductImage(Base):

@@ -46,6 +46,31 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    token = authorization.split(" ")[1]
+    
+    try:
+        decoded = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        user_id = decoded.get("id")
+        if not user_id:
+            return None
+    except jwt.PyJWTError:
+        return None
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return None
+    
+    user.role = get_user_role(user)
+    return user
+
+
 class AuthorizeRoles:
     def __init__(self, *roles: str):
         self.roles = roles
