@@ -12,61 +12,25 @@ import "react-toastify/dist/ReactToastify.css";
 
 const orderStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-// Custom Styled Toast Components matching Figma Design
+// Custom Styled Toast Components - Small & Simple
 const CustomSuccessToast = ({ message }) => (
-  <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-green-600 rounded-3xl p-6 text-white min-w-[380px]">
-    {/* Decorative Shapes */}
-    <div className="absolute top-0 left-0 w-20 h-20 -ml-8 -mt-8 rounded-full bg-emerald-800/40" />
-    <div className="absolute bottom-0 left-8 w-14 h-14 -mb-7 rounded-full bg-emerald-800/30" />
-    <div className="absolute top-6 left-24 w-5 h-5 rounded-full bg-emerald-800/20" />
-
-    <div className="flex items-start gap-5 relative z-10">
-      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white text-emerald-600 text-2xl font-bold flex-shrink-0 shadow-lg">
-        ✓
-      </div>
-      <div className="flex-1">
-        <p className="font-playfair text-2xl font-bold text-white mb-1">Well done!</p>
-        <p className="font-raleway text-sm opacity-90">{message}</p>
-      </div>
-    </div>
+  <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl px-5 py-3 text-white shadow-lg">
+    <span className="text-xl">✓</span>
+    <p className="font-raleway text-sm font-medium">{message}</p>
   </div>
 );
 
 const CustomErrorToast = ({ message }) => (
-  <div className="relative overflow-hidden bg-gradient-to-r from-rose-500 to-red-500 rounded-3xl p-6 text-white min-w-[380px]">
-    {/* Decorative Shapes */}
-    <div className="absolute top-0 left-0 w-20 h-20 -ml-8 -mt-8 rounded-full bg-rose-900/40" />
-    <div className="absolute bottom-0 left-8 w-14 h-14 -mb-7 rounded-full bg-rose-900/30" />
-    <div className="absolute top-6 left-24 w-5 h-5 rounded-full bg-rose-900/20" />
-
-    <div className="flex items-start gap-5 relative z-10">
-      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white text-rose-600 text-2xl font-bold flex-shrink-0 shadow-lg">
-        ✕
-      </div>
-      <div className="flex-1">
-        <p className="font-playfair text-2xl font-bold text-white mb-1">Oh snap!</p>
-        <p className="font-raleway text-sm opacity-90">{message}</p>
-      </div>
-    </div>
+  <div className="flex items-center gap-3 bg-gradient-to-r from-rose-500 to-red-500 rounded-xl px-5 py-3 text-white shadow-lg">
+    <span className="text-xl">✕</span>
+    <p className="font-raleway text-sm font-medium">{message}</p>
   </div>
 );
 
 const CustomWarningToast = ({ message }) => (
-  <div className="relative overflow-hidden bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl p-6 text-white min-w-[380px]">
-    {/* Decorative Shapes */}
-    <div className="absolute top-0 left-0 w-20 h-20 -ml-8 -mt-8 rounded-full bg-amber-800/40" />
-    <div className="absolute bottom-0 left-8 w-14 h-14 -mb-7 rounded-full bg-amber-800/30" />
-    <div className="absolute top-6 left-24 w-5 h-5 rounded-full bg-amber-800/20" />
-
-    <div className="flex items-start gap-5 relative z-10">
-      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white text-amber-500 text-2xl font-bold flex-shrink-0 shadow-lg">
-        ⚠
-      </div>
-      <div className="flex-1">
-        <p className="font-playfair text-2xl font-bold text-white mb-1">Warning!</p>
-        <p className="font-raleway text-sm opacity-90">{message}</p>
-      </div>
-    </div>
+  <div className="flex items-center gap-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl px-5 py-3 text-white shadow-lg">
+    <span className="text-xl">⚠</span>
+    <p className="font-raleway text-sm font-medium">{message}</p>
   </div>
 );
 
