@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { convertRupeesToDollars, formatUsd } from "../utils/currency";
 import useCart from "../hooks/useCart";
 
@@ -8,19 +8,46 @@ const fallbackImage =
 
 function ProductCard({ product }) {
   const { addItem } = useCart();
+  const navigate = useNavigate(); // For programmatic navigation
   const [added, setAdded] = useState(false);
-  const [swipeDistance, setSwipeDistance] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
-  const touchStartX = useRef(0);
+  const [buttonSwipeDistance, setButtonSwipeDistance] = useState(0);
+  const [cardSwipeDistance, setCardSwipeDistance] = useState(0);
+  const [isSwipingButton, setIsSwipingButton] = useState(false);
+  const [isSwipingCard, setIsSwipingCard] = useState(false);
+  const buttonStartX = useRef(0);
+  const cardStartX = useRef(0);
 
   const imageSrc = product.images?.find(Boolean) || fallbackImage;
   const price = Number(product.price || 0);
   const usdPrice = convertRupeesToDollars(price);
 
+  const handleAddToCart = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    addItem(product, 1);
+    setAdded(true);
+    setTimeout(() => {
+      setAdded(false);
+    }, 1500);
+  };
+
+  // Determine card colors based on swipe direction
+  const getCardBackgroundColor = () => {
+    if (cardSwipeDistance < -40) return "rgba(107, 114, 128, 0.1)"; // Gray for left swipe (view details)
+    return "var(--surface-soft)";
+  };
+
+  const getCardBorderColor = () => {
+    if (cardSwipeDistance < -40) return "rgba(107, 114, 128, 0.3)";
+    return "var(--border)";
+  };
+
   const cardStyle = {
-    transform: `translateX(${swipeDistance}px) rotate(${swipeDistance / 20}deg)`,
-    backgroundColor: "var(--surface-soft)",
-    borderColor: "var(--border)",
+    transform: `translateX(${cardSwipeDistance}px) rotate(${cardSwipeDistance / 40}deg)`,
+    backgroundColor: getCardBackgroundColor(),
+    borderColor: getCardBorderColor(),
   };
 
   const textStyle = {
@@ -35,52 +62,153 @@ function ProductCard({ product }) {
     backgroundColor: "var(--surface)",
   };
 
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem(product, 1);
-    setAdded(true);
-    setTimeout(() => {
-      setAdded(false);
-    }, 1500);
+  // ---------------- Button Swipe Handlers (Add to Cart) ----------------
+  const handleButtonStart = (clientX) => {
+    buttonStartX.current = clientX;
+    setIsSwipingButton(true);
   };
 
-  const handleTouchStart = (event) => {
-    touchStartX.current = event.touches[0]?.clientX || 0;
-    setIsSwiping(true);
+  const handleButtonMove = (clientX) => {
+    if (!isSwipingButton) return;
+    const delta = clientX - buttonStartX.current;
+    setButtonSwipeDistance(Math.max(Math.min(delta, 150), 0)); // Only right swipe for button
   };
 
-  const handleTouchMove = (event) => {
-    if (!isSwiping) return;
-    const clientX = event.touches[0]?.clientX || 0;
-    const delta = clientX - touchStartX.current;
-    setSwipeDistance(Math.max(Math.min(delta, 70), -70));
+  const handleButtonEnd = () => {
+    if (buttonSwipeDistance > 100) {
+      handleAddToCart();
+    }
+    setButtonSwipeDistance(0);
+    setIsSwipingButton(false);
   };
 
-  const handleTouchEnd = () => {
-    setSwipeDistance(0);
-    setIsSwiping(false);
+  // Touch handlers for button
+  const handleButtonTouchStart = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleButtonStart(event.touches[0]?.clientX || 0);
   };
+  
+  const handleButtonTouchMove = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleButtonMove(event.touches[0]?.clientX || 0);
+  };
+  
+  const handleButtonTouchEnd = () => {
+    handleButtonEnd();
+  };
+
+  // Mouse handlers for button
+  const handleButtonMouseDown = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleButtonStart(event.clientX);
+  };
+  
+  const handleButtonMouseMove = (event) => {
+    if (isSwipingButton) handleButtonMove(event.clientX);
+  };
+  
+  const handleButtonMouseUp = () => handleButtonEnd();
+  const handleButtonMouseLeave = () => handleButtonEnd();
+
+  // ---------------- Card Swipe Handlers (View Details) ----------------
+  const handleCardStart = (clientX) => {
+    // If we're on the button, don't swipe the card
+    cardStartX.current = clientX;
+    setIsSwipingCard(true);
+  };
+
+  const handleCardMove = (clientX) => {
+    if (!isSwipingCard) return;
+    const delta = clientX - cardStartX.current;
+    setCardSwipeDistance(Math.max(Math.min(delta, 50), -100)); // Right limited, left more
+  };
+
+  const handleCardEnd = () => {
+    if (cardSwipeDistance < -70) {
+      // Swiped left enough - navigate to product details!
+      navigate(`/products/${product._id}`);
+    }
+    setCardSwipeDistance(0);
+    setIsSwipingCard(false);
+  };
+
+  // Touch handlers for card
+  const handleCardTouchStart = (event) => {
+    // Only start card swipe if not touching the button
+    const target = event.target;
+    if (target.closest('[data-swipe-button]')) return;
+    handleCardStart(event.touches[0]?.clientX || 0);
+  };
+  
+  const handleCardTouchMove = (event) => {
+    if (!isSwipingCard) return;
+    const target = event.target;
+    if (target.closest('[data-swipe-button]')) return;
+    handleCardMove(event.touches[0]?.clientX || 0);
+  };
+  
+  const handleCardTouchEnd = () => {
+    handleCardEnd();
+  };
+
+  // Mouse handlers for card
+  const handleCardMouseDown = (event) => {
+    const target = event.target;
+    if (target.closest('[data-swipe-button]')) return;
+    handleCardStart(event.clientX);
+  };
+  
+  const handleCardMouseMove = (event) => {
+    if (!isSwipingCard) return;
+    handleCardMove(event.clientX);
+  };
+  
+  const handleCardMouseUp = () => handleCardEnd();
+  const handleCardMouseLeave = () => handleCardEnd();
 
   const swipeLabel = added
     ? "Added ✓"
-    : isSwiping
-    ? swipeDistance > 0
-      ? "Swipe right to buy"
-      : "Swipe left to explore"
+    : isSwipingButton
+    ? buttonSwipeDistance > 50
+      ? "Release to buy →"
+      : "Swipe →"
     : "Swipe to Buy";
 
   return (
-    <Link
-      to={`/products/${product._id}`}
+    <div
       style={cardStyle}
-      className="group touch-swipe-card relative flex h-full flex-col overflow-hidden rounded-4xl border p-4 transition duration-500 hover:-translate-y-2 card-shadow-hover"
-      aria-label={`View details for ${product.name}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      className="group relative flex h-full flex-col overflow-hidden rounded-4xl border p-4 transition duration-300 hover:-translate-y-2 card-shadow-hover cursor-pointer"
+      onClick={(e) => {
+        // Don't navigate if clicking the swipe button!
+        const target = e.target;
+        if (target.closest('[data-swipe-button]')) return;
+        navigate(`/products/${product._id}`);
+      }}
+      onTouchStart={handleCardTouchStart}
+      onTouchMove={handleCardTouchMove}
+      onTouchEnd={handleCardTouchEnd}
+      onTouchCancel={handleCardTouchEnd}
+      onMouseDown={handleCardMouseDown}
+      onMouseMove={isSwipingCard ? handleCardMouseMove : undefined}
+      onMouseUp={handleCardMouseUp}
+      onMouseLeave={handleCardMouseLeave}
     >
+      {/* Left swipe indicator for details */}
+      {cardSwipeDistance < 0 && (
+        <div 
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center rounded-full text-3xl text-white transition-all"
+          style={{ 
+            opacity: Math.min(Math.abs(cardSwipeDistance) / 70, 1), 
+            transform: `translate(${50 + cardSwipeDistance * 0.5}px, -50%) scale(${0.5 + (Math.abs(cardSwipeDistance) / 140)})`,
+            background: "rgba(107, 114, 128, 0.85)"
+          }}
+        >
+          👁️
+        </div>
+      )}
       {/* Decorative Back Arrow */}
       <div className="absolute left-9 top-9 z-20 flex h-8 w-8 items-center justify-center rounded-full opacity-70 shadow-sm transition group-hover:opacity-100" style={surfaceStyle}>
         <span className="text-lg font-light leading-none" style={textStyle}>
@@ -137,23 +265,60 @@ function ProductCard({ product }) {
           <span>★ {Number(product.ratings || 0).toFixed(1)} ({product.numReviews || 0})</span>
         </div>
 
-        {/* Combined Action Price/Buy Pill Button */}
+        {/* Combined Action Price/Buy Pill Button - Classic Sliding Design! */}
         <div className="mt-auto pt-2">
-          <button
-            onClick={handleAddToCart}
-            className="w-full flex items-center justify-between rounded-full bg-neutral-700 dark:bg-neutral-800 p-1 shadow-md hover:bg-neutral-600 transition duration-300 cursor-pointer"
-            aria-label="Add product to cart"
+          <div 
+            data-swipe-button="true"
+            className="relative w-full h-14 overflow-hidden rounded-full bg-neutral-800 dark:bg-neutral-900 p-1 shadow-md cursor-grab active:cursor-grabbing select-none"
+            onTouchStart={handleButtonTouchStart}
+            onTouchMove={handleButtonTouchMove}
+            onTouchEnd={handleButtonTouchEnd}
+            onTouchCancel={handleButtonTouchEnd}
+            onMouseDown={handleButtonMouseDown}
+            onMouseMove={isSwipingButton ? handleButtonMouseMove : undefined}
+            onMouseUp={handleButtonMouseUp}
+            onMouseLeave={handleButtonMouseLeave}
           >
-            <div className="rounded-full bg-black dark:bg-neutral-950 px-6 py-2.5 text-sm font-bold text-white tracking-wide">
-              {formatUsd(usdPrice)}
+            {/* Green success background */}
+            <div 
+              className="absolute top-0 left-0 h-full rounded-full transition-all"
+              style={{ 
+                width: `${Math.min((buttonSwipeDistance / 150) * 100, 100)}%`,
+                backgroundColor: buttonSwipeDistance > 80 ? "rgba(34, 197, 94, 0.95)" : "rgba(34, 197, 94, 0.4)"
+              }}
+            />
+
+            {/* Swipe text label in background */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-neutral-300 text-[10px] font-extrabold uppercase tracking-[0.25em]">
+                {swipeLabel}
+              </span>
             </div>
-            <span className="flex-1 text-center text-[10px] font-extrabold uppercase tracking-[0.2em] text-neutral-300 hover:text-white transition duration-300">
-              {swipeLabel}
-            </span>
-          </button>
+
+            {/* Sliding pill! */}
+            <div 
+              className="absolute top-1 left-1 h-[calc(100%-8px)] flex items-center justify-center rounded-full bg-gradient-to-r from-black to-neutral-800 dark:from-neutral-900 dark:to-black shadow-xl"
+              style={{ 
+                width: 'auto',
+                minWidth: '100px',
+                padding: '0 24px',
+                transform: `translateX(${buttonSwipeDistance}px)`,
+                transition: isSwipingButton ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              }}
+            >
+              <span className="text-white font-bold text-sm font-raleway tracking-wide">
+                {formatUsd(usdPrice)}
+              </span>
+              {buttonSwipeDistance > 30 && (
+                <span className="ml-3 text-xl transition-opacity">
+                  🛒
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

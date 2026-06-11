@@ -1,7 +1,8 @@
 import os
 import time
-# import shutil  # No longer needed for Cloudinary uploads
+import shutil
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Request, Response, status
+from fastapi.staticfiles import StaticFiles
 from app.middleware.auth import AuthorizeRoles
 try:
     from app.utils.cloudinary import upload_image_to_cloudinary
@@ -18,7 +19,7 @@ async def upload_image(
     request: Request,
     response: Response,
     image: UploadFile = File(...),
-    current_user = Depends(AuthorizeRoles("admin"))
+    current_user = Depends(AuthorizeRoles("admin", "supplier"))
 ):
     # Ensure response headers allow cross-origin
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -32,36 +33,41 @@ async def upload_image(
         )
         
     # File size validation (5MB limit)
-    # Read the file contents to check size
     contents = await image.read()
     if len(contents) > 5 * 1024 * 1024:
          raise HTTPException(
             status_code=400,
             detail="File size exceeds the 5MB limit."
         )
-    # Reset read pointer
-    await image.seek(0)
     
     # Generate unique filename
-    ext = os.path.splitext(image.filename)[1]
+    ext = os.path.splitext(image.filename)[1] if image.filename else ".png"
     filename = f"image-{int(time.time() * 1000)}{ext}"
     filepath = os.path.join(UPLOAD_DIR, filename)
     
-    try:
-        # Upload image to Cloudinary (if available)
-        if not upload_image_to_cloudinary:
-            raise HTTPException(status_code=503, detail="Image upload feature is unavailable in this environment. Install cloudinary package to enable it.")
-        upload_result = upload_image_to_cloudinary(contents, filename)
-        image_url = upload_result.get("secure_url")
-        if not image_url:
-            raise HTTPException(status_code=500, detail="Cloudinary upload failed")
-        return {
-            "success": True,
-            "message": "Image uploaded successfully",
-            "url": image_url,
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Upload failed: {str(e)}"
-        )
+    image_url = None
+    
+    # Try Cloudinary first
+    if upload_image_to_cloudinary:
+        try:
+            upload_result = upload_image_to_cloudinary(contents, filename)
+            image_url = upload_result.get("secure_url")
+        except Exception:
+            pass  # Fall through to local upload
+    
+    # Fallback to local file system
+    if not image_url:
+        try:
+            with open(filepath, "wb") as buffer:
+                buffer.write(contents)
+            # Create local URL (assuming /uploads is served statically)
+            base_url = str(request.base_url).rstrip("/")
+            image_url = f"{base_url}/uploads/{filename}"
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Local upload failed: {str(e)}")
+    
+    return {
+        "success": True,
+        "message": "Image uploaded successfully",
+        "url": image_url,
+    }

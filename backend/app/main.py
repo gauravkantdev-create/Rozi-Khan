@@ -10,13 +10,17 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
+from app.database import Base, engine
 from app.routers import auth, products, orders, upload, payment, supplier, retailer, retailer_listing, inventory, integration, webhooks, analytics
 
 app = FastAPI(
     title="Rozi Khan API",
-    description="Python FastAPI + PostgreSQL backend for Rozi Khan dropshipping platform",
+    description="Python FastAPI + SQLite backend for Rozi Khan dropshipping platform",
     version="1.0.0"
 )
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter

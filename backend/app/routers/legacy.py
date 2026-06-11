@@ -46,10 +46,25 @@ def flatten_product(p: Product, db: Session):
     }
 
 @router.get("/products")
-def legacy_get_products(db: Session = Depends(get_db)):
-    # Returns all products or supplier products depending on auth?
-    # In legacy, GET /products usually returns all products for the marketplace
-    products = db.query(Product).filter(Product.status == "ACTIVE").all()
+def legacy_get_products(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Returns all products or supplier products depending on auth
+    if current_user.role == "admin":
+        # Admins see ALL products
+        products = db.query(Product).all()
+    elif current_user.role == "supplier":
+        # Suppliers see only their own products
+        supplier = db.query(Supplier).filter(Supplier.user_id == current_user.id).first()
+        if supplier:
+            products = db.query(Product).filter(Product.supplier_id == supplier.id).all()
+        else:
+            products = []
+    else:
+        # Retailers and others see active products
+        products = db.query(Product).filter(Product.status == "ACTIVE").all()
+    
     flat_products = [flatten_product(p, db) for p in products]
     return {"success": True, "products": flat_products}
 
@@ -67,9 +82,43 @@ def legacy_create_product(
     current_user: User = Depends(AuthorizeRoles("supplier", "admin"))
 ):
     # Data is expected to be { name, description, price, category, stock, supplier, images }
-    supplier = db.query(Supplier).filter(Supplier.user_id == current_user.id).first()
-    if not supplier:
-        raise HTTPException(status_code=404, detail="Supplier profile not found")
+    supplier = None
+    if current_user.role == "admin":
+        # For admin: find supplier by company name
+        supplier_name = data.get("supplier")
+        if supplier_name:
+            supplier = db.query(Supplier).filter(Supplier.company_name.ilike(supplier_name)).first()
+        if not supplier:
+            # Check if there are any suppliers
+            supplier = db.query(Supplier).first()
+        if not supplier:
+            # Create a default supplier for the admin
+            default_supplier = Supplier(
+                id=str(uuid.uuid4()),
+                user_id=current_user.id,
+                company_name="Default Supplier",
+                verification_status="APPROVED"
+            )
+            db.add(default_supplier)
+            db.flush()
+            
+            # Create supplier settings
+            from app.models.supplier import SupplierSetting
+            settings = SupplierSetting(
+                id=str(uuid.uuid4()),
+                supplier_id=default_supplier.id,
+                auto_accept_orders=True,
+                dispatch_sla_days=2
+            )
+            db.add(settings)
+            db.flush()
+            
+            supplier = default_supplier
+    else:
+        # For suppliers: use their own profile
+        supplier = db.query(Supplier).filter(Supplier.user_id == current_user.id).first()
+        if not supplier:
+            raise HTTPException(status_code=404, detail="Supplier profile not found")
 
     catalog = ProductCatalog(
         id=str(uuid.uuid4()),
@@ -166,6 +215,22 @@ def legacy_update_product(
 
 def flatten_order(o: Order, db: Session):
     addr = o.shipping_address or {}
+    items = []
+    for item in o.items:
+        variant = db.query(ProductVariant).filter(ProductVariant.id == item.variant_id).first()
+        product_name = "Unknown Product"
+        if variant:
+            product = db.query(Product).filter(Product.id == variant.product_id).first()
+            if product:
+                catalog = db.query(ProductCatalog).filter(ProductCatalog.id == product.catalog_id).first()
+                if catalog:
+                    product_name = catalog.name
+        items.append({
+            "_id": item.id,
+            "name": product_name,
+            "quantity": item.quantity,
+            "price": float(item.wholesale_price_at_order),
+        })
     return {
         "_id": o.id,
         "totalPrice": float(o.total_amount),
@@ -176,8 +241,10 @@ def flatten_order(o: Order, db: Session):
             "address": addr.get("Address", ""),
             "city": addr.get("City", ""),
             "postalCode": addr.get("Zip", ""),
-            "country": addr.get("Country", "")
-        }
+            "country": addr.get("Country", ""),
+            "phone": addr.get("Phone", "")
+        },
+        "items": items
     }
 
 @router.post("/orders")
@@ -277,4 +344,121 @@ def legacy_create_payment_order(data: dict):
 def legacy_verify_payment(data: dict):
     # Stub verification
     return {"success": True, "message": "Payment verified successfully"}
+
+# --- SUPPLIERS & CATEGORIES ---
+@router.get("/admin/suppliers-list")
+def get_suppliers_list(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
+):
+    suppliers = db.query(Supplier).filter(Supplier.verification_status == "APPROVED").all()
+    return {
+        "success": True,
+        "suppliers": [
+            {
+                "id": s.id,
+                "company_name": s.company_name
+            }
+            for s in suppliers
+        ]
+    }
+
+@router.get("/categories")
+def get_categories(db: Session = Depends(get_db)):
+    # Get all unique categories from product catalog
+    categories = db.query(ProductCatalog.category).distinct().all()
+    # If no categories yet, provide default ones
+    cat_list = [cat[0] for cat in categories if cat[0]]
+    if not cat_list:
+        cat_list = ["Electronics", "Fashion", "Home & Kitchen", "Beauty", "Sports", "Books"]
+    return {
+        "success": True,
+        "categories": cat_list
+    }
+
+@router.post("/admin/categories")
+def create_category(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
+):
+    category_name = data.get("name")
+    if not category_name:
+        raise HTTPException(status_code=400, detail="Category name is required")
+    
+    # Check if category already exists
+    existing = db.query(ProductCatalog).filter(ProductCatalog.category.ilike(category_name)).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Category already exists")
+    
+    # Create a dummy product catalog entry just to add the category
+    # (or we could create a separate categories table, but for simplicity, use existing)
+    dummy_catalog = ProductCatalog(
+        id=str(uuid.uuid4()),
+        name=f"Dummy-{category_name}",
+        description=f"Category holder for {category_name}",
+        category=category_name
+    )
+    db.add(dummy_catalog)
+    db.commit()
+    
+    # Get all categories again
+    categories = db.query(ProductCatalog.category).distinct().all()
+    return {
+        "success": True,
+        "message": "Category created successfully",
+        "categories": [cat[0] for cat in categories if cat[0]]
+    }
+
+@router.post("/admin/suppliers")
+def create_supplier_profile(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
+):
+    company_name = data.get("company_name")
+    if not company_name:
+        raise HTTPException(status_code=400, detail="Company name is required")
+    
+    # Create a new supplier profile (we'll link it to current admin user for simplicity)
+    existing_supplier = db.query(Supplier).filter(Supplier.company_name.ilike(company_name)).first()
+    if existing_supplier:
+        raise HTTPException(status_code=400, detail="Supplier with this company name already exists")
+    
+    new_supplier = Supplier(
+        id=str(uuid.uuid4()),
+        user_id=current_user.id,
+        company_name=company_name,
+        tax_id=data.get("tax_id", ""),
+        warehouse_address=data.get("warehouse_address", ""),
+        verification_status="APPROVED"
+    )
+    db.add(new_supplier)
+    db.commit()
+    db.refresh(new_supplier)
+    
+    # Create supplier settings
+    from app.models.supplier import SupplierSetting
+    settings = SupplierSetting(
+        id=str(uuid.uuid4()),
+        supplier_id=new_supplier.id,
+        auto_accept_orders=True,
+        dispatch_sla_days=2
+    )
+    db.add(settings)
+    db.commit()
+    
+    # Get all suppliers
+    suppliers = db.query(Supplier).filter(Supplier.verification_status == "APPROVED").all()
+    return {
+        "success": True,
+        "message": "Supplier created successfully",
+        "suppliers": [
+            {
+                "id": s.id,
+                "company_name": s.company_name
+            }
+            for s in suppliers
+        ]
+    }
 

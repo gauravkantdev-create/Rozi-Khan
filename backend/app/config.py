@@ -4,7 +4,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     PORT: int = 5000
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/rozikhan"
+    DATABASE_URL: str = "sqlite:///./dev.db"
     JWT_SECRET: str = "supersecretjwttokenforrozikhanapplicationdevelopment"
     RESEND_API_KEY: Optional[str] = None
     RESEND_FROM_EMAIL: str = "RoziKhan <onboarding@resend.dev>"
