@@ -185,7 +185,7 @@ def legacy_create_product(
     db.commit()
     db.refresh(product)
     
-    return {"success": True, "product": flatten_product(product, db)}
+    return {"success": True, "product": flatten_product(product)}
 
 @router.delete("/products/{product_id}")
 def legacy_delete_product(
@@ -230,7 +230,7 @@ def legacy_update_product(
                 ledger.quantity_available = data["stock"]
                 db.commit()
 
-    return {"success": True, "product": flatten_product(p, db)}
+    return {"success": True, "product": flatten_product(p)}
 
 # --- ORDERS ---
 
