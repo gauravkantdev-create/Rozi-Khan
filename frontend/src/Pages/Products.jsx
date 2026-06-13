@@ -49,7 +49,7 @@ function Products() {
             copy="Search and filter supplier-ready items while preserving the same FastAPI product endpoint and MongoDB-style identifiers."
           />
 
-          <form onSubmit={handleSearch} className={`${surfaceClass} grid gap-3 p-4 sm:grid-cols-[1fr_210px_auto]`}>
+          <form onSubmit={handleSearch} className={`${surfaceClass} grid gap-3 p-4 sm:grid-cols-1 md:grid-cols-[1fr_210px_auto]`}>
             <input
               type="text"
               placeholder="Search products..."
@@ -70,13 +70,13 @@ function Products() {
 
         <div className="mt-10">
           {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
                 <div key={item} className="h-[460px] animate-pulse border border-[var(--border)] bg-[var(--surface-soft)]" />
               ))}
             </div>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product, index) => (
                 <div key={product._id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms` }}>
                   <ProductCard product={product} />

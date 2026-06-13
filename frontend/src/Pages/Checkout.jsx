@@ -95,7 +95,7 @@ function Checkout() {
         key: data.key,
         amount: data.order.amount,
         currency: data.order.currency,
-        name: "RoziKhan",
+        name: "Rkdrop",
         description: `Order of ${cartItems.length} item(s)`,
         order_id: data.order.id,
         handler: async (response) => {

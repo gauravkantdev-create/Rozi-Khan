@@ -1,5 +1,5 @@
-export const CART_STORAGE_KEY = "rozikhan_cart";
-export const CART_CHANGE_EVENT = "rozikhan-cart-change";
+export const CART_STORAGE_KEY = "rkdrop_cart";
+export const CART_CHANGE_EVENT = "rkdrop-cart-change";
 
 export const normalizeCartItem = (item = {}) => ({
   productId: item.productId || item._id || item.id || `${item.name}-${item.price}`,
@@ -7,7 +7,7 @@ export const normalizeCartItem = (item = {}) => ({
   price: Number(item.price || 0),
   image: item.image || item.images?.[0] || item.images || "",
   category: item.category || "Dropshipping",
-  supplier: item.supplier || "RoziKhan Verified Supplier",
+  supplier: item.supplier || "Rkdrop Verified Supplier",
   stock: Number(item.stock || 99),
   quantity: Math.max(Number(item.quantity || 1), 1),
 });

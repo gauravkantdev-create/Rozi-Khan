@@ -27,7 +27,7 @@ function ProductInfo({ product, quantity, onQuantityChange, onAddToCart }) {
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <StatCard label="Supplier" value={product.supplier || "Verified"} detail="RoziKhan supplier network" />
+        <StatCard label="Supplier" value={product.supplier || "Verified"} detail="Rkdrop supplier network" />
         <StatCard label="Rating" value={Number(product.ratings || 0).toFixed(1)} detail={`${product.numReviews || 0} customer reviews`} />
       </div>
 

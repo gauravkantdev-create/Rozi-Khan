@@ -45,7 +45,7 @@ function Login() {
       <Container className="grid min-h-[calc(100vh-118px)] items-center gap-10 py-10 lg:grid-cols-[0.95fr_1.05fr]">
         <section>
           <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[var(--brand)]">Seller access</p>
-          <h1 className="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl">Login to your RoziKhan workspace</h1>
+          <h1 className="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl">Login to your Rkdrop workspace</h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-[var(--muted)]">
             Continue to products, orders, and dashboard tools in the same clean marketplace experience.
           </p>
@@ -80,7 +80,7 @@ function Login() {
           </form>
 
           <p className="mt-6 text-center text-sm text-[var(--muted)]">
-            New to RoziKhan?{" "}
+            New to Rkdrop?{" "}
             <Link to="/register" className="font-extrabold text-[var(--brand)] hover:text-[var(--brand-dark)]">
               Create an account
             </Link>

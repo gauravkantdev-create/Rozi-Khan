@@ -96,7 +96,7 @@ function ProductDetail() {
       price: product.price,
       image: product.images?.[0] || "",
       category: product.category,
-      supplier: product.supplier || "RoziKhan Verified Supplier",
+      supplier: product.supplier || "Rkdrop Verified Supplier",
       stock: product.stock,
     }, quantity);
     setCartMessage(`${quantity} item${quantity > 1 ? "s" : ""} added to cart.`);
@@ -128,7 +128,7 @@ function ProductDetail() {
 
   if (loading) return <ProductDetailSkeleton />;
   if (error) return <PageShell><StateMessage title="Product unavailable" message={error} tone="error" /></PageShell>;
-  if (!product) return <PageShell><StateMessage title="Product not found" message="This product may have been removed from the RoziKhan catalog." /></PageShell>;
+  if (!product) return <PageShell><StateMessage title="Product not found" message="This product may have been removed from the Rkdrop catalog." /></PageShell>;
 
   return (
     <PageShell>

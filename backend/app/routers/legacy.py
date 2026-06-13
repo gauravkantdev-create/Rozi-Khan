@@ -44,6 +44,8 @@ def flatten_product(p: Product):
 
 @router.get("/products")
 def legacy_get_products(
+    keyword: str | None = None,
+    category: str | None = None,
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_current_user_optional)
 ):
@@ -57,16 +59,28 @@ def legacy_get_products(
 
     # Returns all products or supplier products depending on auth
     if current_user and current_user.role == "admin":
-        products = query.all()
+        pass
     elif current_user and current_user.role == "supplier":
         supplier = db.query(Supplier).filter(Supplier.user_id == current_user.id).first()
         if supplier:
-            products = query.filter(Product.supplier_id == supplier.id).all()
+            query = query.filter(Product.supplier_id == supplier.id)
         else:
-            products = []
+            query = query.filter(Product.id == None)  # No products
     else:
-        products = query.filter(Product.status == "ACTIVE").all()
+        query = query.filter(Product.status == "ACTIVE")
+
+    # Apply category filter if provided
+    if category:
+        query = query.join(Product.catalog).filter(ProductCatalog.category.ilike(category))
     
+    # Apply keyword search if provided
+    if keyword:
+        query = query.join(Product.catalog).filter(
+            (ProductCatalog.name.ilike(f"%{keyword}%")) |
+            (ProductCatalog.description.ilike(f"%{keyword}%"))
+        )
+
+    products = query.all()
     flat_products = [flatten_product(p) for p in products]
     return {"success": True, "products": flat_products}
 

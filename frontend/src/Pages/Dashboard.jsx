@@ -812,7 +812,7 @@ function EnhancedProductLine({ product, trailing }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate font-raleway font-bold text-[var(--text)]">{product.name}</p>
-        <p className="truncate font-raleway text-sm text-[var(--muted)] mt-0.5">{product.supplier || "RoziKhan Supplier"} / {product.category}</p>
+        <p className="truncate font-raleway text-sm text-[var(--muted)] mt-0.5">{product.supplier || "Rkdrop Supplier"} / {product.category}</p>
       </div>
       {trailing && <span className="ml-auto shrink-0 font-raleway text-sm font-bold text-[var(--brand)]">{trailing}</span>}
     </div>

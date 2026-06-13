@@ -117,7 +117,7 @@ function Footer() {
         <div className="text-left">
           <Link to="/" className="flex items-center gap-2 mb-4">
             <span className="font-playfair text-2xl font-bold tracking-tight text-[var(--text)]">
-              RoziKha<span className="italic font-serif text-[var(--brand)] font-normal">n</span>
+              Rk<span className="italic font-serif text-[var(--brand)] font-normal">drop</span>
             </span>
           </Link>
           <p className="text-xs leading-relaxed text-[var(--muted)] max-w-xs mb-6">
@@ -189,7 +189,7 @@ function Footer() {
             </li>
             <li className="flex items-center gap-3 text-xs font-semibold text-[var(--muted)]">
               <span className="text-sm text-[var(--brand)]">✉</span>
-              <span>support@rozikhan.com</span>
+              <span>support@rkdrop.com</span>
             </li>
           </ul>
         </div>
@@ -197,7 +197,7 @@ function Footer() {
 
       {/* Bottom Bar */}
       <Container className="flex flex-col gap-4 py-4 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between pt-4">
-        <p>© Copyright by RoziKhan. All rights reserved.</p>
+        <p>© Copyright by Rkdrop. All rights reserved.</p>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           {["Privacy Policy", "Terms of Use", "Legal", "Site Map"].map((item) => (
             <Link key={item} to="/" className="hover:text-[var(--brand)] transition">

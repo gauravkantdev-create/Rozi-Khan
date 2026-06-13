@@ -49,7 +49,7 @@ function Cart() {
                         </p>
                         <h2 className="mt-2 font-playfair text-2xl font-semibold leading-snug text-[#2F2F2F]">{item.name}</h2>
                         <p className="mt-2 font-raleway text-sm leading-7 text-[#757575]">
-                          Sold by {item.supplier || "RoziKhan Verified Supplier"}
+                          Sold by {item.supplier || "Rkdrop Verified Supplier"}
                         </p>
                         <p className={`mt-2 font-raleway text-sm font-bold ${stock <= 5 ? "text-amber-700" : "text-emerald-700"}`}>
                           {stock <= 5 ? `Only ${stock} left` : `${stock} available`}

@@ -217,7 +217,7 @@ function ProductCard({ product }) {
       </div>
 
       {/* Inner Rounded Product Image Container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-4xl bg-white dark:bg-neutral-900 p-4 flex items-center justify-center mb-5 shadow-sm border" style={{ borderColor: "var(--border)" }}>
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-4xl bg-[var(--surface)] p-4 flex items-center justify-center mb-5 shadow-sm border" style={{ borderColor: "var(--border)" }}>
         <img
           src={imageSrc}
           alt={product.name}
@@ -232,10 +232,10 @@ function ProductCard({ product }) {
       <div className="flex flex-1 flex-col">
         {/* Page Dots Indicator */}
         <div className="mb-4 flex gap-1.5 px-1">
-          <span className="h-2.5 w-2.5 rounded-full bg-neutral-600 transition-colors dark:bg-neutral-400" />
-          <span className="h-2.5 w-2.5 rounded-full bg-neutral-300 transition-colors dark:bg-neutral-700" />
-          <span className="h-2.5 w-2.5 rounded-full bg-neutral-200 transition-colors dark:bg-neutral-800" />
-          <span className="h-2.5 w-2.5 rounded-full bg-neutral-100 transition-colors dark:bg-neutral-900" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand)] transition-colors" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--border)] transition-colors" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--surface-soft)] transition-colors" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--border)] transition-colors opacity-50" />
         </div>
 
         {/* Category */}
@@ -249,9 +249,9 @@ function ProductCard({ product }) {
         </h3>
 
         {/* View the Experience Link */}
-        <div className="mb-4 flex items-center gap-2 px-1 text-xs font-bold transition-colors group-hover-text-brand" style={mutedStyle}>
-          <span className="text-[9px] translate-y-[-0.5px]">▶</span>
-          <span>View the Experience</span>
+        <div className="mb-4 flex items-center gap-2 px-1 text-xs font-bold transition-colors" style={{ color: "var(--muted)" }}>
+          <span className="text-[9px] translate-y-[-0.5px] text-[var(--brand)]">▶</span>
+          <span className="hover:text-[var(--brand)] transition-colors">View the Experience</span>
         </div>
 
         {/* Product Description */}
@@ -261,7 +261,7 @@ function ProductCard({ product }) {
 
         {/* Supplier & Review Row */}
         <div className="mb-6 px-1 flex items-center justify-between text-[11px] font-semibold" style={mutedStyle}>
-          <span>{product.supplier || "RoziKhan Supplier"}</span>
+          <span>{product.supplier || "Rkdrop Supplier"}</span>
           <span>★ {Number(product.ratings || 0).toFixed(1)} ({product.numReviews || 0})</span>
         </div>
 
@@ -269,7 +269,7 @@ function ProductCard({ product }) {
         <div className="mt-auto pt-2">
           <div 
             data-swipe-button="true"
-            className="relative w-full h-14 overflow-hidden rounded-full bg-neutral-800 dark:bg-neutral-900 p-1 shadow-md cursor-grab active:cursor-grabbing select-none"
+            className="relative w-full h-16 overflow-hidden rounded-full bg-[var(--surface-soft)] p-1 shadow-md cursor-grab active:cursor-grabbing select-none border border-[var(--border)]"
             onTouchStart={handleButtonTouchStart}
             onTouchMove={handleButtonTouchMove}
             onTouchEnd={handleButtonTouchEnd}
@@ -279,38 +279,38 @@ function ProductCard({ product }) {
             onMouseUp={handleButtonMouseUp}
             onMouseLeave={handleButtonMouseLeave}
           >
-            {/* Green success background */}
+            {/* Neon green success background */}
             <div 
-              className="absolute top-0 left-0 h-full rounded-full transition-all"
+              className="absolute top-0 left-0 h-full rounded-full transition-all z-10"
               style={{ 
                 width: `${Math.min((buttonSwipeDistance / 150) * 100, 100)}%`,
-                backgroundColor: buttonSwipeDistance > 80 ? "rgba(34, 197, 94, 0.95)" : "rgba(34, 197, 94, 0.4)"
+                backgroundColor: buttonSwipeDistance > 80 ? "var(--brand)" : "rgba(57, 255, 20, 0.3)"
               }}
             />
 
             {/* Swipe text label in background */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-neutral-300 text-[10px] font-extrabold uppercase tracking-[0.25em]">
+            <div className="absolute inset-0 flex items-center justify-end pr-6 pointer-events-none z-20">
+              <span className="text-[var(--brand)] text-[12px] font-black uppercase tracking-[0.25em]">
                 {swipeLabel}
               </span>
             </div>
 
             {/* Sliding pill! */}
             <div 
-              className="absolute top-1 left-1 h-[calc(100%-8px)] flex items-center justify-center rounded-full bg-gradient-to-r from-black to-neutral-800 dark:from-neutral-900 dark:to-black shadow-xl"
+              className="absolute top-1 left-1 h-[calc(100%-8px)] flex items-center justify-center rounded-full bg-[var(--surface)] border border-[var(--border)] shadow-xl z-30"
               style={{ 
                 width: 'auto',
-                minWidth: '100px',
-                padding: '0 24px',
+                minWidth: '80px',
+                padding: '0 14px',
                 transform: `translateX(${buttonSwipeDistance}px)`,
                 transition: isSwipingButton ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
               }}
             >
-              <span className="text-white font-bold text-sm font-raleway tracking-wide">
+              <span className="text-[var(--text)] font-bold text-sm font-raleway tracking-wide">
                 {formatUsd(usdPrice)}
               </span>
               {buttonSwipeDistance > 30 && (
-                <span className="ml-3 text-xl transition-opacity">
+                <span className="ml-2 text-lg transition-opacity">
                   🛒
                 </span>
               )}

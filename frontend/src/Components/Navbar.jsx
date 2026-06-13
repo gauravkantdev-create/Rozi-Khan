@@ -2,13 +2,11 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useCart from "../hooks/useCart";
-import useThemeMode from "../hooks/useThemeMode";
 
 function Navbar() {
   const navigate = useNavigate();
   const { isAuthenticated: loggedIn, isAdmin, logout } = useAuth();
   const { count: cartCount } = useCart();
-  const { isDark, toggleTheme } = useThemeMode();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
@@ -35,7 +33,7 @@ function Navbar() {
         {/* Logo */}
         <Link to="/" onClick={closeMobileMenu} className="flex flex-shrink-0 items-center gap-2">
           <span className="font-playfair text-3xl font-bold text-[var(--text)]">
-            RoziKhan
+            Rkdrop
           </span>
         </Link>
 
@@ -54,17 +52,8 @@ function Navbar() {
           {isAdmin && <NavLink to="/dashboard" className="text-base text-[var(--muted)] hover:text-[var(--text)] transition-colors">Dashboard</NavLink>}
         </nav>
 
-        {/* Right Side - Theme, Cart, Auth Buttons */}
+        {/* Right Side - Cart, Auth Buttons */}
         <div className="flex items-center gap-4">
-          {/* Theme Toggle */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="hidden h-9 w-9 place-items-center rounded-md border border-[var(--border)] bg-[var(--surface-soft)] text-sm text-[var(--text)] transition duration-150 hover:bg-[var(--border)] sm:grid"
-            aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
-          >
-            {isDark ? "☀️" : "🌙"}
-          </button>
 
           {loggedIn ? (
             <>

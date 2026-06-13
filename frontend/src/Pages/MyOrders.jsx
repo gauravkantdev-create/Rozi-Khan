@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { cancelOrder, getMyOrders } from "../Services/orderService";
-import useThemeMode from "../hooks/useThemeMode";
 import { formatUsdFromInr } from "../utils/currency";
 
 const statusStyles = {
@@ -13,7 +12,6 @@ const statusStyles = {
 };
 
 function MyOrders() {
-  const { isDark } = useThemeMode();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,23 +53,23 @@ function MyOrders() {
   };
 
   return (
-    <main className={`min-h-screen px-4 py-8 sm:px-6 lg:px-10 ${isDark ? "bg-[#050505] text-white" : "bg-[#f6f7fb] text-slate-950"}`}>
+    <main className={`min-h-screen px-4 py-8 sm:px-6 lg:px-10 bg-[var(--page)] text-[var(--text)]`}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-500">Order management</p>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-[var(--brand)]">Order management</p>
             <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">My Orders</h1>
-            <p className={`mt-3 ${isDark ? "text-gray-400" : "text-slate-600"}`}>
+            <p className="mt-3 text-[var(--muted)]">
               Track supplier processing, shipping, and delivery status in one clean workspace.
             </p>
           </div>
-          <Link to="/products" className="rounded-xl bg-blue-600 px-5 py-3 text-center text-sm font-black text-white transition hover:bg-blue-700">
+          <Link to="/products" className="rounded-xl bg-[var(--brand)] px-5 py-3 text-center text-sm font-black text-[var(--page)] transition hover:bg-[var(--brand-dark)]">
             Source products
           </Link>
         </div>
 
         {actionMessage && (
-          <div className="mb-5 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4 text-sm font-bold text-blue-500">
+          <div className="mb-5 rounded-xl border border-[var(--brand)]/30 bg-[var(--brand)]/10 p-4 text-sm font-bold text-[var(--brand)]">
             {actionMessage}
           </div>
         )}
@@ -79,7 +77,7 @@ function MyOrders() {
         {loading ? (
           <div className="grid gap-4">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="h-40 animate-pulse rounded-2xl bg-slate-200 dark:bg-white/10" />
+              <div key={item} className="h-40 animate-pulse rounded-2xl bg-[var(--surface-soft)]" />
             ))}
           </div>
         ) : error ? (
@@ -87,32 +85,32 @@ function MyOrders() {
             {error}
           </div>
         ) : orders.length === 0 ? (
-          <section className={`rounded-2xl border p-10 text-center shadow-xl ${isDark ? "border-white/10 bg-[#0c0d10]" : "border-slate-200 bg-white"}`}>
+          <section className="rounded-2xl border border-[var(--border)] p-10 text-center shadow-xl bg-[var(--surface)]">
             <h2 className="text-3xl font-black">No orders yet.</h2>
-            <p className={`mx-auto mt-3 max-w-xl ${isDark ? "text-gray-400" : "text-slate-600"}`}>
+            <p className="mx-auto mt-3 max-w-xl text-[var(--muted)]">
               Your confirmed supplier orders will appear here after checkout.
             </p>
           </section>
         ) : (
           <div className="grid gap-5">
             {orders.map((order) => (
-              <article key={order._id} className={`overflow-hidden rounded border shadow-sm ${isDark ? "border-white/10 bg-[#131921]" : "border-slate-200 bg-white"}`}>
-                <div className={`grid gap-3 border-b p-4 text-sm md:grid-cols-4 ${isDark ? "border-white/10 bg-white/5" : "border-slate-200 bg-slate-50"}`}>
+              <article key={order._id} className="overflow-hidden rounded border border-[var(--border)] shadow-sm bg-[var(--surface)]">
+                <div className="grid gap-3 border-b border-[var(--border)] p-4 text-sm md:grid-cols-4 bg-[var(--surface-soft)]">
                   <div>
-                    <p className={`text-xs font-black uppercase ${isDark ? "text-gray-400" : "text-slate-500"}`}>Order placed</p>
+                    <p className="text-xs font-black uppercase text-[var(--muted)]">Order placed</p>
                     <p className="mt-1 font-bold">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className={`text-xs font-black uppercase ${isDark ? "text-gray-400" : "text-slate-500"}`}>Total</p>
+                    <p className="text-xs font-black uppercase text-[var(--muted)]">Total</p>
                     <p className="mt-1 font-bold">{formatUsdFromInr(order.totalPrice)}</p>
                   </div>
                   <div>
-                    <p className={`text-xs font-black uppercase ${isDark ? "text-gray-400" : "text-slate-500"}`}>Ship to</p>
+                    <p className="text-xs font-black uppercase text-[var(--muted)]">Ship to</p>
                     <p className="mt-1 truncate font-bold">{order.shippingAddress?.fullName || "Customer"}</p>
                   </div>
                   <div className="md:text-right">
-                    <p className={`text-xs font-black uppercase ${isDark ? "text-gray-400" : "text-slate-500"}`}>Order # {order._id.slice(-8).toUpperCase()}</p>
-                    <Link to={`/orders/${order._id}`} className="mt-1 inline-flex font-black text-blue-600 hover:underline">
+                    <p className="text-xs font-black uppercase text-[var(--muted)]">Order # {order._id.slice(-8).toUpperCase()}</p>
+                    <Link to={`/orders/${order._id}`} className="mt-1 inline-flex font-black text-[var(--brand)] hover:underline">
                       View order details
                     </Link>
                   </div>
@@ -143,14 +141,14 @@ function MyOrders() {
                     <div className="grid gap-3">
                       {order.orderItems.slice(0, 4).map((item) => (
                         <div key={`${order._id}-${item.productId || item.name}`} className="flex gap-4">
-                          <img src={item.image} alt="" className="h-20 w-20 rounded bg-white object-contain p-2 shadow-sm" />
+                          <img src={item.image} alt="" className="h-20 w-20 rounded bg-[var(--surface)] object-contain p-2 shadow-sm" />
                           <div className="min-w-0">
                             <p className="truncate font-black">{item.name}</p>
-                            <p className={`text-sm ${isDark ? "text-gray-400" : "text-slate-500"}`}>
+                            <p className="text-sm text-[var(--muted)]">
                               Qty {item.quantity} / {item.supplier}
                             </p>
                             {item.productId && (
-                              <Link to={`/products/${item.productId}`} className="mt-2 inline-flex text-sm font-black text-blue-600 hover:underline">
+                              <Link to={`/products/${item.productId}`} className="mt-2 inline-flex text-sm font-black text-[var(--brand)] hover:underline">
                                 Buy it again
                               </Link>
                             )}
@@ -162,7 +160,7 @@ function MyOrders() {
                     <div className="grid h-max gap-3">
                       <Link
                         to={`/orders/${order._id}`}
-                        className="rounded-full bg-[#ffd814] px-4 py-2 text-center text-sm font-black text-slate-950 transition hover:bg-[#f7ca00]"
+                        className="rounded-full bg-[var(--brand)] px-4 py-2 text-center text-sm font-black text-[var(--page)] transition hover:bg-[var(--brand-dark)]"
                       >
                         Track package
                       </Link>
@@ -178,7 +176,7 @@ function MyOrders() {
                       )}
                       <Link
                         to={`/orders/${order._id}`}
-                        className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-black transition hover:bg-slate-100 dark:border-white/10 dark:hover:bg-white/10"
+                        className="rounded-full border border-[var(--border)] px-4 py-2 text-center text-sm font-black transition hover:bg-[var(--surface-soft)]"
                       >
                         View invoice
                       </Link>
