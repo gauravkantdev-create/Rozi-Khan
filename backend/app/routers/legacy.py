@@ -482,4 +482,3 @@ def create_supplier_profile(
             for s in suppliers
         ]
     }
-

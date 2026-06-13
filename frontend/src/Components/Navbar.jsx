@@ -54,7 +54,6 @@ function Navbar() {
 
         {/* Right Side - Cart, Auth Buttons */}
         <div className="flex items-center gap-4">
-
           {loggedIn ? (
             <>
               <Link to="/cart" className="relative rounded-full border-2 border-[var(--border)] bg-[var(--text)] px-6 py-2 text-base font-medium text-[var(--surface)] transition hover:opacity-90">

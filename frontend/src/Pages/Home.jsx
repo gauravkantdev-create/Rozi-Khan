@@ -260,7 +260,7 @@ function Home() {
             ) : premiumAdminProducts.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                 {premiumAdminProducts.slice(0, 6).map((product, index) => (
-                  <div key={product._id || product.id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms` }}>
+                  <div key={product._id || product.id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms`}>
                     <ProductCard product={product} />
                   </div>
                 ))}
@@ -573,7 +573,7 @@ function Home() {
 function FeatureCard({ title, copy }) {
   const icon = featureIcons[title];
   return (
-    <article className={`${surfaceClass} rounded-[2rem] border border-[var(--border)]/50 p-7 shadow-sm transition duration-300 hover:shadow-md`}>
+    <article className={`${surfaceClass} rounded-[2rem] border border-[var(--border)]/50 p-7 shadow-sm transition duration-300 hover:shadow-md">
       <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface-soft)] p-3">
         {icon ? (
           <img src={icon} alt={title} className="h-full w-full object-contain" />
