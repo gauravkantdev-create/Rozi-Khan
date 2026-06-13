@@ -370,7 +370,7 @@ def legacy_verify_payment(data: dict):
 @router.get("/admin/suppliers-list")
 def get_suppliers_list(
     db: Session = Depends(get_db),
-    current_user: User = Depends(AuthorizeRoles("admin"))
+    current_user: User = Depends(AuthorizeRoles("admin", "retailer", "supplier"))
 ):
     suppliers = db.query(Supplier).filter(Supplier.verification_status == "APPROVED").all()
     return {
@@ -378,7 +378,8 @@ def get_suppliers_list(
         "suppliers": [
             {
                 "id": s.id,
-                "company_name": s.company_name
+                "company_name": s.company_name,
+                "logo_url": s.logo_url
             }
             for s in suppliers
         ]
@@ -450,6 +451,7 @@ def create_supplier_profile(
         id=str(uuid.uuid4()),
         user_id=current_user.id,
         company_name=company_name,
+        logo_url=data.get("logo_url"),
         tax_id=data.get("tax_id", ""),
         warehouse_address=data.get("warehouse_address", ""),
         verification_status="APPROVED"
@@ -477,8 +479,57 @@ def create_supplier_profile(
         "suppliers": [
             {
                 "id": s.id,
-                "company_name": s.company_name
+                "company_name": s.company_name,
+                "logo_url": s.logo_url
             }
             for s in suppliers
         ]
+    }
+
+@router.delete("/admin/suppliers/{supplier_id}")
+def delete_supplier(
+    supplier_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
+):
+    supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    db.delete(supplier)
+    db.commit()
+    # Return updated suppliers list
+    suppliers = db.query(Supplier).filter(Supplier.verification_status == "APPROVED").all()
+    return {
+        "success": True,
+        "message": "Supplier deleted successfully",
+        "suppliers": [
+            {
+                "id": s.id,
+                "company_name": s.company_name,
+                "logo_url": s.logo_url
+            }
+            for s in suppliers
+        ]
+    }
+
+@router.delete("/admin/categories/{category_name}")
+def delete_category(
+    category_name: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthorizeRoles("admin"))
+):
+    # Delete dummy catalog entry for this category
+    dummy_entries = db.query(ProductCatalog).filter(ProductCatalog.category.ilike(category_name)).all()
+    for entry in dummy_entries:
+        db.delete(entry)
+    db.commit()
+    # Get updated categories
+    categories = db.query(ProductCatalog.category).distinct().all()
+    cat_list = [cat[0] for cat in categories if cat[0]]
+    if not cat_list:
+        cat_list = ["Electronics", "Fashion", "Home & Kitchen", "Beauty", "Sports", "Books"]
+    return {
+        "success": True,
+        "message": "Category deleted successfully",
+        "categories": cat_list
     }

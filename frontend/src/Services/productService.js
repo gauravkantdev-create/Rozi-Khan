@@ -12,4 +12,8 @@ export const getSuppliers = () => API.get("/admin/suppliers-list");
 
 export const createCategory = (data) => API.post("/admin/categories", data);
 
+export const deleteCategory = (categoryName) => API.delete(`/admin/categories/${encodeURIComponent(categoryName)}`);
+
 export const createSupplier = (data) => API.post("/admin/suppliers", data);
+
+export const deleteSupplier = (supplierId) => API.delete(`/admin/suppliers/${supplierId}`);

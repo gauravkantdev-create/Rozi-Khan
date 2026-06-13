@@ -44,8 +44,8 @@ def seed_database():
         admin = User(id=generate_uuid(), name="System Admin", email="admin@rozikhan.com", password=default_password, role="admin", is_email_verified=True)
         
         # Suppliers
-        sup1 = User(id=generate_uuid(), name="Supplier One", email="supplier1@rozikhan.com", password=default_password, role="supplier", is_email_verified=True)
-        sup2 = User(id=generate_uuid(), name="Supplier Two", email="supplier2@rozikhan.com", password=default_password, role="supplier", is_email_verified=True)
+        sup1 = User(id=generate_uuid(), name="AliExpress", email="aliexpress@example.com", password=default_password, role="supplier", is_email_verified=True)
+        sup2 = User(id=generate_uuid(), name="Think Compare", email="thinkcompare@example.com", password=default_password, role="supplier", is_email_verified=True)
         
         # Retailers
         ret1 = User(id=generate_uuid(), name="Retailer One", email="retailer1@rozikhan.com", password=default_password, role="retailer", is_email_verified=True)
@@ -55,8 +55,8 @@ def seed_database():
         db.commit()
 
         print("🏢 Creating Profiles...")
-        s1_profile = Supplier(user_id=sup1.id, company_name="Tech Gadgets Wholesale", verification_status="APPROVED")
-        s2_profile = Supplier(user_id=sup2.id, company_name="Home Goods Wholesale", verification_status="APPROVED")
+        s1_profile = Supplier(user_id=sup1.id, company_name="AliExpress", logo_url="https://upload.wikimedia.org/wikipedia/commons/9/9a/AliExpress_Logo.svg", verification_status="APPROVED")
+        s2_profile = Supplier(user_id=sup2.id, company_name="Think Compare", logo_url="https://via.placeholder.com/200x200/34d399/ffffff?text=TC", verification_status="APPROVED")
         
         r1_profile = Retailer(user_id=ret1.id, store_name="Retailer One Store", status="ACTIVE")
         r2_profile = Retailer(user_id=ret2.id, store_name="Retailer Two Store", status="ACTIVE")

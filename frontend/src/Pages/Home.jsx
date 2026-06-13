@@ -260,7 +260,7 @@ function Home() {
             ) : premiumAdminProducts.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                 {premiumAdminProducts.slice(0, 6).map((product, index) => (
-                  <div key={product._id || product.id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms`}>
+                  <div key={product._id || product.id} className="animate-rise-in" style={{ animationDelay: `${index * 55}ms` }}>
                     <ProductCard product={product} />
                   </div>
                 ))}
@@ -318,15 +318,20 @@ function Home() {
         <Container>
           <SectionHeading
             align="center"
-            eyebrow="Integrations"
-            title="Diversify your inventory and automate your order flow"
-            copy="Popular marketplace and operational integrations are grouped clearly so sellers can scan the platform fundamentals quickly."
+            eyebrow="Suppliers"
+            title="Our Trusted Suppliers"
+            copy="We partner with top suppliers to bring you the best products for your dropshipping business."
           />
-          <div className="mt-10 grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {["TikTok Shop", "Shopify", "WooCommerce", "eBay", "Amazon", "Inventory sync", "Order routing", "Product data"].map((item) => (
-              <div key={item} className={`${surfaceClass} rounded-lg p-6`}>
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-[var(--surface-soft)] text-xl text-[var(--brand)]">*</span>
-                <h3 className="mt-5 text-lg font-extrabold">{item}</h3>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { name: "AliExpress", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9a/AliExpress_Logo.svg" },
+              { name: "Think Compare", logo: "https://via.placeholder.com/200x200/34d399/ffffff?text=TC" }
+            ].map((item) => (
+              <div key={item.name} className={`${surfaceClass} rounded-lg p-6 flex flex-col items-center text-center`}>
+                <div className="grid h-20 w-20 place-items-center rounded-full bg-[var(--surface-soft)] overflow-hidden">
+                  <img src={item.logo} alt={item.name} className="h-full w-full object-contain" />
+                </div>
+                <h3 className="mt-5 text-lg font-extrabold">{item.name}</h3>
               </div>
             ))}
           </div>
@@ -405,7 +410,7 @@ function Home() {
                           <h3 className="text-lg font-bold text-[var(--text)]">{title}</h3>
                         </div>
                         
-                        <div className="flex items-baseline gap-1.5">
+                        <div className="flex items-baseline gap-2">
                           <span className="text-4xl font-extrabold text-[var(--text)]">{price}</span>
                           <span className="text-sm text-[var(--muted)]">/ month</span>
                         </div>
@@ -573,7 +578,7 @@ function Home() {
 function FeatureCard({ title, copy }) {
   const icon = featureIcons[title];
   return (
-    <article className={`${surfaceClass} rounded-[2rem] border border-[var(--border)]/50 p-7 shadow-sm transition duration-300 hover:shadow-md">
+    <article className={`${surfaceClass} rounded-[2rem] border border-[var(--border)]/50 p-7 shadow-sm transition duration-300 hover:shadow-md`}>
       <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface-soft)] p-3">
         {icon ? (
           <img src={icon} alt={title} className="h-full w-full object-contain" />

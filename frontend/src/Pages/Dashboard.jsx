@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../Services/api";
 import { getAllOrders, updateOrderStatus } from "../Services/orderService";
-import { getCategories, getSuppliers, createCategory, createSupplier } from "../Services/productService";
+import { getCategories, getSuppliers, createCategory, createSupplier, deleteCategory, deleteSupplier } from "../Services/productService";
 import useAuth from "../hooks/useAuth";
 import { formatUsdFromInr } from "../utils/currency";
 import ProductMedia from "../Components/products/ProductMedia";
@@ -57,7 +57,7 @@ function Dashboard() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [categoryFormData, setCategoryFormData] = useState({ name: "" });
-  const [supplierFormData, setSupplierFormData] = useState({ company_name: "", tax_id: "", warehouse_address: "" });
+  const [supplierFormData, setSupplierFormData] = useState({ company_name: "", logo_url: "", tax_id: "", warehouse_address: "" });
   const [modalLoading, setModalLoading] = useState(false);
 
   const overviewStats = useMemo(() => {
@@ -153,13 +153,39 @@ function Dashboard() {
         setSuppliers(data.suppliers);
         setFormData((prev) => ({ ...prev, supplier: supplierFormData.company_name }));
         setShowSupplierModal(false);
-        setSupplierFormData({ company_name: "", tax_id: "", warehouse_address: "" });
+        setSupplierFormData({ company_name: "", logo_url: "", tax_id: "", warehouse_address: "" });
         toast(<CustomSuccessToast message="Supplier added successfully." />);
       }
     } catch (error) {
       toast(<CustomErrorToast message={error.response?.data?.message || "Failed to add supplier."} />);
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryName) => {
+    if (!window.confirm(`Are you sure you want to delete the category "${categoryName}"?`)) return;
+    try {
+      const { data } = await deleteCategory(categoryName);
+      if (data.success) {
+        setCategories(data.categories);
+        toast(<CustomSuccessToast message="Category deleted successfully." />);
+      }
+    } catch (error) {
+      toast(<CustomErrorToast message={error.response?.data?.message || "Failed to delete category."} />);
+    }
+  };
+
+  const handleDeleteSupplier = async (supplierId, supplierName) => {
+    if (!window.confirm(`Are you sure you want to delete the supplier "${supplierName}"?`)) return;
+    try {
+      const { data } = await deleteSupplier(supplierId);
+      if (data.success) {
+        setSuppliers(data.suppliers);
+        toast(<CustomSuccessToast message="Supplier deleted successfully." />);
+      }
+    } catch (error) {
+      toast(<CustomErrorToast message={error.response?.data?.message || "Failed to delete supplier."} />);
     }
   };
 
@@ -422,6 +448,15 @@ function Dashboard() {
                         >
                           +
                         </button>
+                        {formData.category && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategory(formData.category)}
+                            className="flex items-center justify-center px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-all duration-200"
+                          >
+                            🗑️
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -463,6 +498,18 @@ function Dashboard() {
                         >
                           +
                         </button>
+                        {(() => {
+                          const selectedSupplier = suppliers.find(s => s.company_name === formData.supplier);
+                          return selectedSupplier ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSupplier(selectedSupplier.id, selectedSupplier.company_name)}
+                              className="flex items-center justify-center px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-all duration-200"
+                            >
+                              🗑️
+                            </button>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                     <div className="space-y-2 sm:col-span-2">
@@ -691,6 +738,15 @@ function Dashboard() {
                   className={inputClass}
                   required
                   autoFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-[var(--text)]">Logo URL (Optional)</label>
+                <input
+                  value={supplierFormData.logo_url}
+                  onChange={(e) => setSupplierFormData({ ...supplierFormData, logo_url: e.target.value })}
+                  placeholder="https://example.com/logo.png"
+                  className={inputClass}
                 />
               </div>
               <div className="space-y-2">

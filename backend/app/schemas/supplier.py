@@ -28,6 +28,7 @@ class SupplierDocumentResponse(SupplierDocumentBase):
 
 class SupplierBase(BaseModel):
     company_name: constr(min_length=2, max_length=255)
+    logo_url: Optional[str] = None
     tax_id: Optional[str] = None
     warehouse_address: Optional[str] = None
 
@@ -36,6 +37,7 @@ class SupplierCreate(SupplierBase):
 
 class SupplierUpdate(BaseModel):
     company_name: Optional[constr(min_length=2, max_length=255)] = None
+    logo_url: Optional[str] = None
     tax_id: Optional[str] = None
     warehouse_address: Optional[str] = None
 

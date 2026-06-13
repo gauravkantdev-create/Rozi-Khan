@@ -12,6 +12,7 @@ class Supplier(Base):
     id = Column(String(36), primary_key=True, index=True, default=generate_uuid)
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
     company_name = Column(String(255), nullable=False)
+    logo_url = Column(String(1000), nullable=True)
     tax_id = Column(String(100))
     verification_status = Column(String(50), default="PENDING") # PENDING, APPROVED, REJECTED
     warehouse_address = Column(String(500))
