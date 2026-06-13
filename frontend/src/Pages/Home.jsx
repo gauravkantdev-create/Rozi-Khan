@@ -6,6 +6,11 @@ import { Container, Eyebrow, PageShell, PrimaryLink, SecondaryLink, SectionHeadi
 import { getProducts } from "../Services/productService";
 import useAuthStatus from "../hooks/useAuthStatus";
 
+import heartIcon from "../assets/feature_heart.png";
+import locationIcon from "../assets/feature_location.png";
+import phoneIcon from "../assets/feature_phone.png";
+import chatIcon from "../assets/feature_chat.png";
+
 // Animated text component for letter-by-letter reveal
 function AnimatedText({ text, className = "", delay = 0 }) {
   const [visible, setVisible] = useState(false);
@@ -41,11 +46,6 @@ function AnimatedText({ text, className = "", delay = 0 }) {
     </span>
   );
 }
-
-import heartIcon from "../assets/feature_heart.png";
-import locationIcon from "../assets/feature_location.png";
-import phoneIcon from "../assets/feature_phone.png";
-import chatIcon from "../assets/feature_chat.png";
 
 const featureIcons = {
   "Trusted suppliers": heartIcon,
